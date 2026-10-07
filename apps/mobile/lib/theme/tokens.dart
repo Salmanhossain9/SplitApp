@@ -9,6 +9,7 @@ class AppColors {
   static const coral = Color(0xFFF4694F);
   static const slate = Color(0xFF6F8393);
   static const white = Color(0xFFFFFFFF);
+  static const clear = Color(0x00000000);
 
   /// Bill cards cycle through these per person (section 7.2).
   static const billCardCycle = [lavender, lime, sky, coral];
@@ -110,4 +111,44 @@ class AppMotion {
   static const chip = Duration(milliseconds: 150);
   static const pressScale = 0.96;
   static const maxTextScale = 1.15;
+}
+
+/// Widget-level dimensions from the component specs (section 7) so ui code stays literal-free.
+class AppDims {
+  static const chevronGlyph = 14.0,
+      plusGlyph = 14.0,
+      actionTileHeight = 176.0,
+      actionArrow = 56.0,
+      actionArrowStroke = 10.0,
+      actionChevronButton = 36.0,
+      billRowHeight = 86.0,
+      customRowHeight = 80.0,
+      checkBadge = 28.0,
+      dot = 10.0,
+      navActiveCircle = 44.0,
+      logoMark = 28.0,
+      stepSegmentRadius = 4.0,
+      stepGap = 6.0,
+      progressRadius = 7.0,
+      rateFieldWidth = 64.0,
+      rateFieldHeight = 40.0,
+      stepperCircle = 32.0,
+      groupFrame = 324.0,
+      groupFront = 200.0,
+      groupSecond = 116.0,
+      groupThird = 120.0,
+      groupTopInset = 70.0,
+      groupOverlap = 8.0,
+      selectedChipHeight = 96.0,
+      viewfinderHeight = 400.0,
+      receiptPaperWidth = 210.0,
+      bracket = 40.0,
+      bracketStroke = 6.0,
+      scanLine = 6.0,
+      sheetHandleWidth = 40.0,
+      sheetHandleHeight = 6.0,
+      sheetTopRadius = 40.0,
+      amountFieldWidth = 128.0;
+  static const groupY = [0.0, 144.0, 204.0];
+  static const scrimBlend = 0.55;
 }

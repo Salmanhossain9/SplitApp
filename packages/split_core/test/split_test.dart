@@ -239,6 +239,12 @@ void main() {
       expect(parsePoisha('1.2.3'), isNull);
       expect(parsePoisha('abc'), isNull);
     });
+    test('rates in basis points', () {
+      expect(parseRateBp('5.9'), 590);
+      expect(parseRateBp('15%'), 1500);
+      expect(rateBpToInput(590), '5.9');
+      expect(rateBpToInput(0), '0');
+    });
     test('poishaToInput round trips', () {
       for (final v in [0, 5, 50, 100, 41250, 41205, 123456]) {
         expect(parsePoisha(poishaToInput(v)), v);

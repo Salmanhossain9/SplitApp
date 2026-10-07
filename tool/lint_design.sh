@@ -9,7 +9,7 @@ DIRS="lib/features lib/ui"
 EXCLUDE='lib/ui/avatar.dart'
 PATTERNS=(
   'Color\(0x'
-  'Colors\.'
+  '\bColors\.'
   'BoxShadow'
   'elevation'
   'LinearGradient'

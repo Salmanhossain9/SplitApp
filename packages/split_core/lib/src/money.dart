@@ -63,3 +63,13 @@ String poishaToInput(int poisha) {
   if (frac == 0) return '$whole';
   return '$whole.${frac.toString().padLeft(2, '0').replaceFirst(RegExp(r'0$'), '')}';
 }
+
+/// Parse a typed percentage ("5.9", "15") into basis points (590, 1500) with string math.
+/// Empty -> 0. Invalid -> null. Digits past 2 decimals are dropped.
+int? parseRateBp(String input) => parsePoisha(input.replaceAll('%', ''));
+
+/// Basis points to the text a rate field shows: 590 -> "5.9", 1500 -> "15", 0 -> "0".
+String rateBpToInput(int bp) {
+  final s = poishaToInput(bp);
+  return s.isEmpty ? '0' : s;
+}
