@@ -29,17 +29,24 @@ class _PressableScaleState extends State<PressableScale> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: widget.behavior,
-      onTapDown: (_) => _set(true),
-      onTapUp: (_) => _set(false),
-      onTapCancel: () => _set(false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _down ? AppMotion.pressScale : 1,
-        duration: AppMotion.press,
-        curve: Curves.easeOut,
-        child: widget.child,
+    // Its own semantic node, so a screen reader announces "new bill, button" on its own and
+    // not glued to the heading next to it.
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: widget.onTap != null,
+      child: GestureDetector(
+        behavior: widget.behavior,
+        onTapDown: (_) => _set(true),
+        onTapUp: (_) => _set(false),
+        onTapCancel: () => _set(false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _down ? AppMotion.pressScale : 1,
+          duration: AppMotion.press,
+          curve: Curves.easeOut,
+          child: widget.child,
+        ),
       ),
     );
   }

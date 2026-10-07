@@ -15,6 +15,7 @@ supabase/
   seed.sql              demo user and the Chillox sample
 web/share/              static public share page (host anywhere, rewrite /s/* to index.html)
 tool/lint_design.sh     fails on hardcoded colours, shadows, gradients, thin outlines
+tool/web_e2e/           real-browser smoke test of the whole demo flow (builds Flutter web in a temp copy)
 DECISIONS.md            every call the spec left open
 ```
 
@@ -65,4 +66,5 @@ Phone and SMS login are not part of v1 and must stay disabled.
 tool/lint_design.sh
 deno test --allow-read --config supabase/functions/deno.json supabase/functions/
 supabase/tests/run.sh                                 # migrations + RLS tests on throwaway Postgres
+tool/web_e2e/run.sh                                   # optional: whole flow in Chromium (needs flutter, node)
 ```

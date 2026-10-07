@@ -139,7 +139,7 @@ class SettleRow extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text('on your tab', style: AppType.body16)),
+                      Expanded(child: Text('on tab', style: AppType.body16)),
                       CircleIconButton(icon: AppIcons.minus, onTap: cover!.onMinus),
                       const SizedBox(width: AppSpacing.s8),
                       AmountField(

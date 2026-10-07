@@ -76,7 +76,7 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                 ClaimedBanner(
                   text: _foundCount == 0
                       ? 'we could not find items. add them below.'
-                      : 'found $_foundCount ${_foundCount == 1 ? 'item' : 'items'}. check them against the receipt.',
+                      : 'found $_foundCount ${_foundCount == 1 ? 'item' : 'items'}. check them.',
                   variant: _foundCount == 0 ? BannerVariant.error : BannerVariant.ok,
                 ),
               for (final item in draft.items)

@@ -2,6 +2,7 @@ name: ci
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   dart:
@@ -34,3 +35,20 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq postgresql > /dev/null
           supabase/tests/run.sh
+
+  # Real-browser smoke test of the whole demo-mode flow. Manual only: it builds Flutter web
+  # (about a minute and a half) and needs a Chromium download.
+  web-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          cd tool/web_e2e && npm install --silent && npx playwright-core install --with-deps chromium
+          ./run.sh
