@@ -56,6 +56,7 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
 
     return ScreenFrame(
       reserveBottom: true,
+      onRefresh: () => ref.refresh(billsProvider.future),
       gap: AppSpacing.s16,
       children: [
         Text('money', style: AppType.display36),

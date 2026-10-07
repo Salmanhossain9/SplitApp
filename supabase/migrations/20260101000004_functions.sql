@@ -145,39 +145,8 @@ language sql stable security definer set search_path = public as $$
   where b.share_token = p_token and b.status in ('open', 'settled');
 $$;
 
--- ---------------------------------------------------------------------------
--- Rate limits for the edge functions (scan-receipt): fixed window per user and bucket.
--- ---------------------------------------------------------------------------
-create table rate_limits (
-  user_id uuid not null,
-  bucket text not null,
-  window_start timestamptz not null default now(),
-  hits int not null default 0,
-  primary key (user_id, bucket)
-);
-alter table rate_limits enable row level security;  -- no policies: service role only
-revoke all on rate_limits from anon, authenticated;
-
-create or replace function take_rate_limit(p_user uuid, p_bucket text, p_max int, p_window_seconds int)
-returns boolean language plpgsql security definer set search_path = public as $$
-declare r rate_limits%rowtype;
-begin
-  insert into rate_limits (user_id, bucket) values (p_user, p_bucket)
-  on conflict (user_id, bucket) do nothing;
-  select * into r from rate_limits where user_id = p_user and bucket = p_bucket for update;
-  if r.window_start < now() - make_interval(secs => p_window_seconds) then
-    update rate_limits set window_start = now(), hits = 1 where user_id = p_user and bucket = p_bucket;
-    return true;
-  end if;
-  if r.hits >= p_max then return false; end if;
-  update rate_limits set hits = hits + 1 where user_id = p_user and bucket = p_bucket;
-  return true;
-end $$;
-
 -- Lock the server functions to the service role.
 revoke all on function finalize_bill_apply(uuid, uuid, split_mode, extras_mode, jsonb, jsonb, text) from public, anon, authenticated;
 revoke all on function share_view(text) from public, anon, authenticated;
-revoke all on function take_rate_limit(uuid, text, int, int) from public, anon, authenticated;
 grant execute on function finalize_bill_apply(uuid, uuid, split_mode, extras_mode, jsonb, jsonb, text) to service_role;
 grant execute on function share_view(text) to service_role;
-grant execute on function take_rate_limit(uuid, text, int, int) to service_role;

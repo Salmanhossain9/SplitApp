@@ -19,13 +19,13 @@ fi
 
 psql_run() { psql "$PGURL" -v ON_ERROR_STOP=1 -q "$@"; }
 
+echo "== setup_all.sql matches the migrations"
+"$root/../tool/build_setup_sql.sh" --check
+
 echo "== shim"
 psql_run -f "$here/shim.sql" >/dev/null
-echo "== migrations"
-for f in "$root"/migrations/*.sql; do
-  echo "   $(basename "$f")"
-  psql_run -f "$f" >/dev/null
-done
+echo "== setup_all.sql (what you paste into the dashboard)"
+psql_run -f "$root/setup_all.sql" >/dev/null
 echo "== tests"
 for f in "$here"/*_test.sql; do
   echo "-- $(basename "$f")"

@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
-import '../bill/draft_bill_notifier.dart';
 import 'camera_gateway.dart';
 import 'receipt_scanner.dart';
 import 'scan_models.dart';
@@ -86,8 +85,7 @@ class _ScanTabState extends ConsumerState<ScanTab> {
       _error = null;
     });
     try {
-      final billId = ref.read(draftBillProvider).id;
-      final result = await ref.read(receiptScannerProvider).scan(billId: billId, bytes: bytes);
+      final result = await ref.read(receiptScannerProvider).scan(bytes);
       if (!mounted) return;
       widget.onScanned(result);
     } on ScanFailure catch (e) {

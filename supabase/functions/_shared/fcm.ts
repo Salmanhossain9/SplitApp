@@ -1,7 +1,7 @@
 // Firebase Cloud Messaging HTTP v1 from an Edge Function, using a service account in the
 // FCM_SERVICE_ACCOUNT secret (the JSON file contents). No SDK: sign a JWT with Web Crypto,
 // trade it for an access token, POST the message.
-import { encodeBase64 } from "@std/encoding/base64";
+import { encodeBase64 } from "jsr:@std/encoding@1/base64";
 
 interface ServiceAccount { project_id: string; client_email: string; private_key: string }
 

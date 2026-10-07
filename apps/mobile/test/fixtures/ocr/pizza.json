@@ -1,0 +1,134 @@
+{
+ "lines": [
+  {
+   "text": "Pizza Roma",
+   "angle": 0.005488056016725173,
+   "left": 287,
+   "top": 26,
+   "right": 475,
+   "bottom": 51
+  },
+  {
+   "text": "Banani, Dhaka",
+   "angle": 0.005488056016725173,
+   "left": 43,
+   "top": 70,
+   "right": 228,
+   "bottom": 93
+  },
+  {
+   "text": "Margherita Pizza Tk 950",
+   "angle": 0.005488056016725173,
+   "left": 43,
+   "top": 157,
+   "right": 718,
+   "bottom": 183
+  },
+  {
+   "text": "Garlic Bread Tk 220",
+   "angle": 0.005488056016725173,
+   "left": 41,
+   "top": 201,
+   "right": 718,
+   "bottom": 225
+  },
+  {
+   "text": "Lemonade x2 Tk 300/-",
+   "angle": 0.005488056016725173,
+   "left": 42,
+   "top": 246,
+   "right": 719,
+   "bottom": 271
+  },
+  {
+   "text": "Total Tk 1,470",
+   "angle": 0.005488056016725173,
+   "left": 39,
+   "top": 333,
+   "right": 718,
+   "bottom": 364
+  }
+ ],
+ "split": [
+  {
+   "text": "Pizza Roma",
+   "angle": 0.005488056016725173,
+   "left": 287,
+   "top": 26,
+   "right": 475,
+   "bottom": 51
+  },
+  {
+   "text": "Banani, Dhaka",
+   "angle": 0.005488056016725173,
+   "left": 43,
+   "top": 70,
+   "right": 228,
+   "bottom": 93
+  },
+  {
+   "text": "Margherita Pizza",
+   "angle": 0.005488056016725173,
+   "left": 43,
+   "top": 157,
+   "right": 253,
+   "bottom": 183
+  },
+  {
+   "text": "Tk 950",
+   "angle": 0.005488056016725173,
+   "left": 631,
+   "top": 160,
+   "right": 718,
+   "bottom": 181
+  },
+  {
+   "text": "Garlic Bread",
+   "angle": 0.005488056016725173,
+   "left": 41,
+   "top": 201,
+   "right": 198,
+   "bottom": 222
+  },
+  {
+   "text": "Tk 220",
+   "angle": 0.005488056016725173,
+   "left": 631,
+   "top": 204,
+   "right": 718,
+   "bottom": 225
+  },
+  {
+   "text": "Lemonade x2",
+   "angle": 0.005488056016725173,
+   "left": 42,
+   "top": 246,
+   "right": 214,
+   "bottom": 266
+  },
+  {
+   "text": "Tk 300/-",
+   "angle": 0.005488056016725173,
+   "left": 613,
+   "top": 248,
+   "right": 719,
+   "bottom": 271
+  },
+  {
+   "text": "Total",
+   "angle": 0.005488056016725173,
+   "left": 39,
+   "top": 333,
+   "right": 119,
+   "bottom": 357
+  },
+  {
+   "text": "Tk 1,470",
+   "angle": 0.005488056016725173,
+   "left": 573,
+   "top": 336,
+   "right": 718,
+   "bottom": 364
+  }
+ ]
+}

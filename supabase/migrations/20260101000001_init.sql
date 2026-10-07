@@ -53,7 +53,6 @@ create table bills (
   split_mode split_mode not null default 'items',
   extras_mode extras_mode not null default 'equally',
   status bill_status not null default 'draft',
-  receipt_path text,                       -- storage path in the private receipts bucket
   share_token text unique,                 -- public share link token (22 url-safe chars)
   billed_at timestamptz not null default now(),
   created_at timestamptz not null default now()

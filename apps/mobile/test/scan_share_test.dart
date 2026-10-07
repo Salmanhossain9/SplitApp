@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -20,6 +21,35 @@ import 'package:splitup/ui/ui.dart';
 class NoCamera implements CameraGateway {
   @override
   Future<CameraSession?> open() async => null;
+}
+
+/// A valid 1 x 1 PNG, so the photo shown while reading decodes.
+final onePixelPng = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+
+class FakeCameraSession implements CameraSession {
+  FakeCameraSession({this.failCapture = false});
+  final bool failCapture;
+  bool disposed = false;
+
+  @override
+  Widget get preview => const ColoredBox(color: Color(0xFF000000));
+
+  @override
+  Future<Uint8List> capture() async {
+    if (failCapture) throw Exception('camera busy');
+    return onePixelPng;
+  }
+
+  @override
+  Future<void> dispose() async => disposed = true;
+}
+
+class FakeCamera implements CameraGateway {
+  FakeCamera(this.session);
+  final FakeCameraSession session;
+
+  @override
+  Future<CameraSession?> open() async => session;
 }
 
 class FakeShare implements ShareService {
@@ -54,12 +84,11 @@ class StubScanner implements ReceiptScanner {
   StubScanner(this.result);
   final Object result; // ScanResult or ScanFailure
   Uint8List? lastBytes;
-  String? lastBillId;
 
   @override
-  Future<ScanResult> scan({required String billId, required Uint8List bytes}) async {
+  Future<ScanResult> scan(Uint8List bytes) async {
     lastBytes = bytes;
-    lastBillId = billId;
+    await Future<void>.delayed(const Duration(milliseconds: 200)); // reading takes a moment
     final r = result;
     if (r is ScanFailure) throw r;
     return r as ScanResult;
@@ -77,25 +106,13 @@ const chilloxScan = ScanResult(
   vat: 11800,
   service: 11800,
   total: 223600,
-  receiptPath: 'u/b/1.jpg',
 );
 
 void main() {
   group('scan models', () {
-    test('parses the function JSON (poisha)', () {
-      final r = ScanResult.fromJson({
-        'place': 'Chillox',
-        'items': [
-          {'name': ' Coke ', 'qty': 3, 'unit_price': 9000},
-          {'name': 'Fries', 'unit_price': 24000},
-        ],
-        'vat': 11800,
-        'service': null,
-        'total': 223600,
-      }, receiptPath: 'p');
-      expect(r.items.map((i) => [i.name, i.qty, i.unitPrice]), [['Coke', 3, 9000], ['Fries', 1, 24000]]);
-      expect(r.subtotal, 27000 + 24000);
-      expect([r.vat, r.service, r.total, r.receiptPath], [11800, null, 223600, 'p']);
+    test('the subtotal is the sum of the lines as read', () {
+      expect(chilloxScan.subtotal, 200000);
+      expect(chilloxScan.toDraftItems().map((i) => [i.name, i.qty, i.unitPrice]).first, ['Chicken burger', 1, 34500]);
     });
 
     test('detected vat and service become rates on the items subtotal', () {
@@ -105,20 +122,6 @@ void main() {
       expect(rateBpFromAmount(15000, 100000), 1500);
       // Rounds half up and never goes through floats.
       expect(rateBpFromAmount(1, 3), 3333);
-    });
-
-    test('image type comes from the file header', () {
-      expect(imageExtension(Uint8List.fromList([0x89, 0x50, 0x4E, 0x47, 0, 0])), 'png');
-      expect(imageExtension(Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0, 0, 0])), 'jpg');
-      final webp = Uint8List.fromList([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0]);
-      expect(imageExtension(webp), 'webp');
-      expect(contentTypeFor('png'), 'image/png');
-    });
-
-    test('error codes map to messages a person can act on', () {
-      expect(scanMessageForCode('rate_limited'), contains('add items by hand'));
-      expect(scanMessageForCode('unreadable'), contains('clearer photo'));
-      expect(scanMessageForCode(null), contains('add items by hand'));
     });
   });
 
@@ -137,7 +140,6 @@ void main() {
       expect([d.vatRateBp, d.serviceRateBp], [590, 590]);
       expect(d.total, 223600);
       expect(d.scannedTotal, 223600);
-      expect(d.receiptPath, 'u/b/1.jpg');
       expect(d.itemsConfirmed, isFalse);
       expect(d.itemsStepValid, isFalse);
     });
@@ -165,14 +167,14 @@ void main() {
   });
 
   group('items screen with a scan', () {
-    Future<(ProviderContainer, StubScanner)> pump(WidgetTester tester, Object scanResult) async {
+    Future<(ProviderContainer, StubScanner)> pump(WidgetTester tester, Object scanResult, {CameraGateway? camera, double height = 844}) async {
       SharedPreferences.setMockInitialValues({});
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(390, 844);
+      tester.view.physicalSize = Size(390, height);
       addTearDown(tester.view.reset);
       final scanner = StubScanner(scanResult);
       final c = ProviderContainer(overrides: [
-        cameraGatewayProvider.overrideWithValue(NoCamera()),
+        cameraGatewayProvider.overrideWithValue(camera ?? NoCamera()),
         receiptScannerProvider.overrideWithValue(scanner),
       ]);
       addTearDown(c.dispose);
@@ -200,6 +202,55 @@ void main() {
       await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/screens/scan_tab.png'));
       await tester.pump(const Duration(milliseconds: 400));
       expect(c.read(draftBillProvider).items, isEmpty);
+    });
+
+    testWidgets('take photo reads the receipt and fills the editable list', (tester) async {
+      final session = FakeCameraSession();
+      final (c, scanner) = await pump(tester, chilloxScan, camera: FakeCamera(session), height: 1500);
+      expect(find.text('place the receipt inside the frame'), findsOneWidget);
+
+      await tester.tap(find.text('take photo'));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('reading your receipt...'), findsOneWidget); // The scan line is sweeping.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(scanner.lastBytes, onePixelPng);
+      // Now on the editable list, with what was found, ready to confirm.
+      expect(find.text('found 4 items. check them.'), findsOneWidget);
+      expect(find.text('Chicken burger'), findsOneWidget);
+      expect(find.text('matches'), findsOneWidget); // The receipt total equals ours.
+      final d = c.read(draftBillProvider);
+      expect(d.items.length, 4);
+      expect(d.subtotal, 200000);
+      expect([d.vatRateBp, d.serviceRateBp], [590, 590]);
+      expect(d.itemsConfirmed, isFalse);
+      expect(session.disposed, isTrue); // The camera was released when the tab went away.
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets('a receipt it cannot read says why and keeps the camera open', (tester) async {
+      final session = FakeCameraSession();
+      final (c, _) = await pump(
+        tester,
+        const ScanFailure('could not find items on this receipt. try a flatter, closer photo, or add them by hand.'),
+        camera: FakeCamera(session),
+      );
+      await tester.tap(find.text('take photo'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('could not find items on this receipt'), findsOneWidget);
+      expect(find.text('take photo'), findsOneWidget); // Still on the scan tab, can retry.
+      expect(c.read(draftBillProvider).items, isEmpty);
+      expect(session.disposed, isFalse);
+      await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets('the camera failing to capture says so', (tester) async {
+      await pump(tester, chilloxScan, camera: FakeCamera(FakeCameraSession(failCapture: true)));
+      await tester.tap(find.text('take photo'));
+      await tester.pumpAndSettle();
+      expect(find.text('could not take the photo. try again or upload one.'), findsOneWidget);
     });
   });
 

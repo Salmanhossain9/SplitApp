@@ -1,0 +1,350 @@
+{
+ "lines": [
+  {
+   "text": "CHILLOX",
+   "angle": 0.007657857363908209,
+   "left": 314,
+   "top": 27,
+   "right": 453,
+   "bottom": 51
+  },
+  {
+   "text": "House 12, Road 5, Gulshan 1, Dhaka",
+   "angle": 0.007657857363908209,
+   "left": 44,
+   "top": 69,
+   "right": 573,
+   "bottom": 95
+  },
+  {
+   "text": "Tel: 01711-123456",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 112,
+   "right": 308,
+   "bottom": 135
+  },
+  {
+   "text": "Date: 21/09/2026 21:04",
+   "angle": 0.007657857363908209,
+   "left": 44,
+   "top": 157,
+   "right": 401,
+   "bottom": 180
+  },
+  {
+   "text": "Table 4 Bill No: 10492",
+   "angle": 0.007657857363908209,
+   "left": 42,
+   "top": 201,
+   "right": 493,
+   "bottom": 224
+  },
+  {
+   "text": "Chicken burger 345.00",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 288,
+   "right": 719,
+   "bottom": 315
+  },
+  {
+   "text": "Beef kala bhuna 1,145.00",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 333,
+   "right": 719,
+   "bottom": 360
+  },
+  {
+   "text": "Fries 240.00",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 377,
+   "right": 719,
+   "bottom": 402
+  },
+  {
+   "text": "Coke x3 270.00",
+   "angle": 0.007657857363908209,
+   "left": 42,
+   "top": 421,
+   "right": 718,
+   "bottom": 446
+  },
+  {
+   "text": "Sub Total 2,000.00",
+   "angle": 0.007657857363908209,
+   "left": 41,
+   "top": 509,
+   "right": 718,
+   "bottom": 536
+  },
+  {
+   "text": "VAT 5.9% 118.00",
+   "angle": 0.007657857363908209,
+   "left": 40,
+   "top": 553,
+   "right": 717,
+   "bottom": 578
+  },
+  {
+   "text": "Service Charge 5.9% 118.00",
+   "angle": 0.007657857363908209,
+   "left": 40,
+   "top": 597,
+   "right": 717,
+   "bottom": 623
+  },
+  {
+   "text": "TOTAL 2,236.00",
+   "angle": 0.007657857363908209,
+   "left": 38,
+   "top": 685,
+   "right": 717,
+   "bottom": 716
+  },
+  {
+   "text": "Cash 2,300.00",
+   "angle": 0.007657857363908209,
+   "left": 39,
+   "top": 729,
+   "right": 716,
+   "bottom": 756
+  },
+  {
+   "text": "Change 64.00",
+   "angle": 0.007657857363908209,
+   "left": 39,
+   "top": 772,
+   "right": 716,
+   "bottom": 798
+  },
+  {
+   "text": "Thank you for dining with us!",
+   "angle": 0.007657857363908209,
+   "left": 38,
+   "top": 816,
+   "right": 485,
+   "bottom": 844
+  }
+ ],
+ "split": [
+  {
+   "text": "CHILLOX",
+   "angle": 0.007657857363908209,
+   "left": 314,
+   "top": 27,
+   "right": 453,
+   "bottom": 51
+  },
+  {
+   "text": "House 12, Road 5, Gulshan 1, Dhaka",
+   "angle": 0.007657857363908209,
+   "left": 44,
+   "top": 69,
+   "right": 573,
+   "bottom": 95
+  },
+  {
+   "text": "Tel: 01711-123456",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 112,
+   "right": 308,
+   "bottom": 135
+  },
+  {
+   "text": "Date: 21/09/2026 21:04",
+   "angle": 0.007657857363908209,
+   "left": 44,
+   "top": 157,
+   "right": 401,
+   "bottom": 180
+  },
+  {
+   "text": "Table 4",
+   "angle": 0.007657857363908209,
+   "left": 42,
+   "top": 201,
+   "right": 150,
+   "bottom": 221
+  },
+  {
+   "text": "Bill No: 10492",
+   "angle": 0.007657857363908209,
+   "left": 279,
+   "top": 202,
+   "right": 493,
+   "bottom": 224
+  },
+  {
+   "text": "Chicken burger",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 288,
+   "right": 260,
+   "bottom": 315
+  },
+  {
+   "text": "345.00",
+   "angle": 0.007657857363908209,
+   "left": 629,
+   "top": 294,
+   "right": 719,
+   "bottom": 314
+  },
+  {
+   "text": "Beef kala bhuna",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 333,
+   "right": 273,
+   "bottom": 354
+  },
+  {
+   "text": "1,145.00",
+   "angle": 0.007657857363908209,
+   "left": 599,
+   "top": 338,
+   "right": 719,
+   "bottom": 360
+  },
+  {
+   "text": "Fries",
+   "angle": 0.007657857363908209,
+   "left": 43,
+   "top": 377,
+   "right": 117,
+   "bottom": 397
+  },
+  {
+   "text": "240.00",
+   "angle": 0.007657857363908209,
+   "left": 628,
+   "top": 382,
+   "right": 719,
+   "bottom": 402
+  },
+  {
+   "text": "Coke x3",
+   "angle": 0.007657857363908209,
+   "left": 42,
+   "top": 421,
+   "right": 148,
+   "bottom": 441
+  },
+  {
+   "text": "270.00",
+   "angle": 0.007657857363908209,
+   "left": 628,
+   "top": 426,
+   "right": 718,
+   "bottom": 446
+  },
+  {
+   "text": "Sub Total",
+   "angle": 0.007657857363908209,
+   "left": 41,
+   "top": 509,
+   "right": 178,
+   "bottom": 530
+  },
+  {
+   "text": "2,000.00",
+   "angle": 0.007657857363908209,
+   "left": 596,
+   "top": 514,
+   "right": 718,
+   "bottom": 536
+  },
+  {
+   "text": "VAT 5.9%",
+   "angle": 0.007657857363908209,
+   "left": 40,
+   "top": 553,
+   "right": 165,
+   "bottom": 573
+  },
+  {
+   "text": "118.00",
+   "angle": 0.007657857363908209,
+   "left": 628,
+   "top": 558,
+   "right": 717,
+   "bottom": 578
+  },
+  {
+   "text": "Service Charge 5.9%",
+   "angle": 0.007657857363908209,
+   "left": 40,
+   "top": 597,
+   "right": 336,
+   "bottom": 623
+  },
+  {
+   "text": "118.00",
+   "angle": 0.007657857363908209,
+   "left": 628,
+   "top": 602,
+   "right": 717,
+   "bottom": 622
+  },
+  {
+   "text": "TOTAL",
+   "angle": 0.007657857363908209,
+   "left": 38,
+   "top": 685,
+   "right": 144,
+   "bottom": 708
+  },
+  {
+   "text": "2,236.00",
+   "angle": 0.007657857363908209,
+   "left": 572,
+   "top": 689,
+   "right": 717,
+   "bottom": 716
+  },
+  {
+   "text": "Cash",
+   "angle": 0.007657857363908209,
+   "left": 39,
+   "top": 729,
+   "right": 98,
+   "bottom": 749
+  },
+  {
+   "text": "2,300.00",
+   "angle": 0.007657857363908209,
+   "left": 595,
+   "top": 734,
+   "right": 716,
+   "bottom": 756
+  },
+  {
+   "text": "Change",
+   "angle": 0.007657857363908209,
+   "left": 39,
+   "top": 772,
+   "right": 130,
+   "bottom": 798
+  },
+  {
+   "text": "64.00",
+   "angle": 0.007657857363908209,
+   "left": 641,
+   "top": 778,
+   "right": 716,
+   "bottom": 798
+  },
+  {
+   "text": "Thank you for dining with us!",
+   "angle": 0.007657857363908209,
+   "left": 38,
+   "top": 816,
+   "right": 485,
+   "bottom": 844
+  }
+ ]
+}

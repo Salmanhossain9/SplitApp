@@ -37,16 +37,6 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(syncErrorProvider, (_, message) {
-      if (message == null) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.coral,
-          content: Text(message, style: AppType.body16.copyWith(color: AppColors.white)),
-        ),
-      );
-      ref.read(syncErrorProvider.notifier).clear();
-    });
     final d = ref.watch(draftBillProvider);
     final n = ref.read(draftBillProvider.notifier);
     final summary = d.settleSummary;

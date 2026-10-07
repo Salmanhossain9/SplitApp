@@ -17,7 +17,11 @@ class ScreenFrame extends StatelessWidget {
     this.gap = AppSpacing.s16,
     this.controller,
     this.reserveBottom = false,
+    this.onRefresh,
   });
+
+  /// Pull down to refresh (home, money, notifications).
+  final Future<void> Function()? onRefresh;
 
   /// Leave room at the bottom for a floating element someone else draws (the tab bar).
   final bool reserveBottom;
@@ -29,12 +33,23 @@ class ScreenFrame extends StatelessWidget {
   final double gap;
   final ScrollController? controller;
 
+  Widget _maybeRefresh(Widget list) => onRefresh == null
+      ? list
+      : RefreshIndicator(
+          color: AppColors.lavender,
+          backgroundColor: AppColors.white,
+          onRefresh: onRefresh!,
+          child: list,
+        );
+
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final top = math.max(AppDims.screenTop, mq.padding.top + AppSpacing.s16);
     final bottomInset = mq.padding.bottom;
-    final floating = (bottom == null && !reserveBottom) ? 0.0 : AppSize.button + AppSpacing.s24;
+    final floating = (bottom == null && !reserveBottom)
+        ? 0.0
+        : AppSize.button + AppSpacing.s24;
     return Scaffold(
       backgroundColor: background,
       body: Stack(
@@ -43,24 +58,34 @@ class ScreenFrame extends StatelessWidget {
             children: [
               if (header != null)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(AppSpacing.s24, top, AppSpacing.s24, 0),
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.s24,
+                    top,
+                    AppSpacing.s24,
+                    0,
+                  ),
                   child: header,
                 ),
               Expanded(
-                child: ListView(
-                  controller: controller,
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.s24,
-                    header == null ? top : AppSpacing.s16,
-                    AppSpacing.s24,
-                    AppSpacing.s24 + floating + bottomInset,
-                  ),
-                  children: [
-                    for (var i = 0; i < children.length; i++) ...[
-                      if (i > 0) SizedBox(height: gap),
-                      children[i],
+                child: _maybeRefresh(
+                  ListView(
+                    controller: controller,
+                    physics: onRefresh == null
+                        ? null
+                        : const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.s24,
+                      header == null ? top : AppSpacing.s16,
+                      AppSpacing.s24,
+                      AppSpacing.s24 + floating + bottomInset,
+                    ),
+                    children: [
+                      for (var i = 0; i < children.length; i++) ...[
+                        if (i > 0) SizedBox(height: gap),
+                        children[i],
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ],

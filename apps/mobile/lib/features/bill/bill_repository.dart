@@ -266,10 +266,11 @@ class SupabaseBillRepository implements BillRepository {
   }
 }
 
-/// Demo mode: nothing leaves the device. Bills sent in this session are kept in memory so the
-/// home screen shows them, and a few samples make the dashboard look alive.
+/// Offline mode (no Supabase configured): nothing leaves the device. Bills sent in this session
+/// are kept in memory so the home screen shows them. Starts empty; [seed] only exists so tests
+/// can start from a populated dashboard.
 class LocalBillRepository implements BillRepository {
-  LocalBillRepository({bool seed = true, DateTime? now}) : _now = now {
+  LocalBillRepository({bool seed = false, DateTime? now}) : _now = now {
     if (seed) _seedSamples(now ?? DateTime.now());
   }
 

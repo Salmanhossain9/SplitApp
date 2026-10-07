@@ -1,0 +1,21 @@
+{
+  // Two ways to run the app from VS Code (press F5 and pick one).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SplitUp (connected to Supabase)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/mobile",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=env.json"]
+    },
+    {
+      "name": "SplitUp (offline mode)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/mobile",
+      "program": "lib/main.dart"
+    }
+  ]
+}

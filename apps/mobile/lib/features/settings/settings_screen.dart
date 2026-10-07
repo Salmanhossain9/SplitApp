@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
+import '../../core/env.dart';
 import '../auth/auth_providers.dart';
+import '../bill/draft_bill_notifier.dart';
 import '../auth/profile_screen.dart' show avatarColorNames;
 import '../notifications/push_service.dart';
 
@@ -59,6 +61,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         await ref.read(pushServiceProvider).unregister(id);
       } catch (_) {}
     }
+    // The next person to log in must not inherit this person's half-finished bill.
+    await ref.read(draftBillProvider.notifier).clear();
     await auth.signOut();
   }
 
@@ -149,6 +153,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onPressed: _save,
         ),
         WideButton(label: 'log out', variant: WideButtonVariant.another, onPressed: _logOut),
+        Center(
+          child: Text(
+            Env.isConfigured
+                ? 'connected to your Supabase project'
+                : 'offline mode: bills stay on this phone until you connect Supabase',
+            textAlign: TextAlign.center,
+            style: AppType.micro12.copyWith(color: AppColors.slate),
+          ),
+        ),
       ],
     );
   }

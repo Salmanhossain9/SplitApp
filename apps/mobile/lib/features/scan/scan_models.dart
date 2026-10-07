@@ -1,7 +1,7 @@
 import '../../core/ids.dart';
 import '../bill/draft_bill.dart';
 
-/// What `scan-receipt` returns, all money in poisha. Never saved as is: the person edits it.
+/// What reading a receipt found, all money in poisha. Never final: the person edits the list.
 class ScanResult {
   const ScanResult({
     required this.items,
@@ -9,7 +9,6 @@ class ScanResult {
     this.vat,
     this.service,
     this.total,
-    this.receiptPath,
   });
 
   final String? place;
@@ -18,25 +17,7 @@ class ScanResult {
   final int? service;
   final int? total;
 
-  /// Where the photo went in the receipts bucket (kept on the bill).
-  final String? receiptPath;
-
-  factory ScanResult.fromJson(Map<String, dynamic> j, {String? receiptPath}) => ScanResult(
-        place: j['place'] as String?,
-        items: [
-          for (final i in (j['items'] as List? ?? const []))
-            ScannedItem(
-              name: (i['name'] as String).trim(),
-              qty: ((i['qty'] as num?) ?? 1).toInt().clamp(1, 999),
-              unitPrice: (i['unit_price'] as num).toInt(),
-            ),
-        ],
-        vat: (j['vat'] as num?)?.toInt(),
-        service: (j['service'] as num?)?.toInt(),
-        total: (j['total'] as num?)?.toInt(),
-        receiptPath: receiptPath,
-      );
-
+  /// Sum of the item lines as read.
   int get subtotal => items.fold(0, (a, i) => a + i.qty * i.unitPrice);
 
   List<DraftItem> toDraftItems() => [
@@ -58,20 +39,10 @@ int rateBpFromAmount(int? amount, int subtotal) {
   return (amount * 10000 + subtotal ~/ 2) ~/ subtotal;
 }
 
+/// Something went wrong reading a photo; [message] is fit to show on the screen.
 class ScanFailure implements Exception {
   const ScanFailure(this.message);
   final String message;
   @override
   String toString() => message;
 }
-
-/// The function's error code to something a person can act on.
-String scanMessageForCode(String? code) => switch (code) {
-      'rate_limited' => 'you have scanned a lot in the last hour. add items by hand for now.',
-      'unsupported_type' => 'use a jpg, png or webp photo.',
-      'too_large' => 'that photo is too big. try a smaller one.',
-      'unreadable' => 'could not read this receipt. try a clearer photo or add items by hand.',
-      'not_configured' => 'receipt scanning is not switched on yet. add items by hand.',
-      'upstream_unreachable' || 'upstream_error' => 'the scanner is busy. add items by hand or try again.',
-      _ => 'could not scan this photo. add items by hand or try again.',
-    };

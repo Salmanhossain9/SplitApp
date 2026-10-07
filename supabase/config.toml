@@ -42,18 +42,11 @@ content_path = "./supabase/templates/code.html"
 enabled = true
 port = 54324
 
-[storage]
-enabled = true
-file_size_limit = "10MiB"
-
 [edge_runtime]
 enabled = true
 
 [functions.share-view]
 verify_jwt = false
-
-[functions.scan-receipt]
-verify_jwt = true
 
 [functions.finalize-bill]
 verify_jwt = true

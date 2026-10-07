@@ -48,6 +48,7 @@ dependencies:
   url_launcher: ^6.3.3
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
+  google_mlkit_text_recognition: ^0.17.1
 
 dev_dependencies:
   flutter_test:

@@ -52,10 +52,10 @@
 </head>
 <body>
 <main id="app"><div class="logo"><span class="mark"></span>splitup</div><p class="sub">loading your bill...</p></main>
+<script src="config.js"></script>
 <script>
-  // Set this to your Supabase project's functions URL before deploying, for example
-  // https://abcd1234.supabase.co/functions/v1/share-view
-  const API = window.SPLITUP_SHARE_API || '__SHARE_VIEW_URL__';
+  // The share-view function URL comes from config.js (edit that file once, see SUPABASE_SETUP.md).
+  const API = window.SPLITUP_SHARE_API || '';
 
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function taka(poisha, forceDecimals) {
@@ -100,6 +100,7 @@
   }
   async function main() {
     const m = location.pathname.match(/\/s\/([A-Za-z0-9_-]{16,64})/) || location.search.match(/[?&]token=([A-Za-z0-9_-]{16,64})/);
+    if (!API || API.includes('YOUR-PROJECT')) return show('<div class="msg"><h1>this page is not set up yet.</h1><p class="sub">The site owner needs to set the share-view URL in config.js.</p></div>');
     if (!m) return show('<div class="msg"><h1>this link does not exist.</h1></div>');
     try {
       const res = await fetch(API + '?token=' + encodeURIComponent(m[1]));

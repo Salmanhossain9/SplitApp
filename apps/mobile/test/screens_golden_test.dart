@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
 import 'package:splitup/features/bill/draft_bill.dart';
+import 'package:splitup/core/person.dart';
 import 'package:splitup/features/bill/draft_bill_notifier.dart';
+import 'package:splitup/features/groups/groups_provider.dart';
+import 'package:splitup/features/groups/groups_repository.dart';
 import 'package:splitup/router.dart';
 import 'package:splitup/theme/app_theme.dart';
 import 'package:splitup/ui/settle_row.dart' show SettleMethod;
@@ -18,12 +21,15 @@ Future<void> shot(
   String name, {
   FutureOr<void> Function(DraftBillNotifier n, Map<String, String> ids)? setup,
   int people = 4,
+  List<GroupCardData> groups = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(390, 844);
   addTearDown(tester.view.reset);
-  final c = ProviderContainer();
+  final c = ProviderContainer(overrides: [
+    groupsRepositoryProvider.overrideWithValue(LocalGroupsRepository(initial: groups)),
+  ]);
   addTearDown(c.dispose);
   final n = c.read(draftBillProvider.notifier);
   n.setPlace('Chillox');
@@ -67,7 +73,18 @@ Future<void> shot(
 }
 
 void main() {
-  testWidgets('new bill', (t) => shot(t, '/bill/new', 'new_bill'));
+  testWidgets('new bill', (t) => shot(t, '/bill/new', 'new_bill', groups: const [
+        GroupCardData(id: 'g1', name: 'NSU boys', members: [
+          Person(id: 'f1', name: 'Rafi', avatarColor: 'coral'),
+          Person(id: 'f2', name: 'Nabil', avatarColor: 'sky'),
+          Person(id: 'f3', name: 'Tania', avatarColor: 'lime'),
+        ]),
+        GroupCardData(id: 'g2', name: 'Roommates', members: [Person(id: 'f4', name: 'Arif'), Person(id: 'f2', name: 'Nabil', avatarColor: 'sky')]),
+        GroupCardData(id: 'g3', name: 'Office lunch', members: [
+          Person(id: 'f5', name: 'Mim', avatarColor: 'coral'), Person(id: 'f4', name: 'Arif'), Person(id: 'f1', name: 'Rafi', avatarColor: 'coral'),
+          Person(id: 'f3', name: 'Tania', avatarColor: 'lime'), Person(id: 'f2', name: 'Nabil', avatarColor: 'sky'),
+        ]),
+      ]));
   testWidgets('items', (t) => shot(t, '/bill/draft/items', 'items'));
   testWidgets('claim by items', (t) => shot(t, '/bill/draft/claim', 'claim_items'));
   testWidgets('claim sheet (5 people)', (t) => shot(t, '/bill/draft/claim', 'claim_sheet', people: 5, setup: (n, ids) {

@@ -1,0 +1,278 @@
+{
+ "lines": [
+  {
+   "text": "THE BACKYARD",
+   "angle": -0.009551159455682906,
+   "left": 248,
+   "top": 27,
+   "right": 504,
+   "bottom": 51
+  },
+  {
+   "text": "Mirpur 10, Dhaka",
+   "angle": -0.009551159455682906,
+   "left": 38,
+   "top": 72,
+   "right": 286,
+   "bottom": 99
+  },
+  {
+   "text": "No Description Qty Rate Amount",
+   "angle": -0.009551159455682906,
+   "left": 40,
+   "top": 158,
+   "right": 678,
+   "bottom": 186
+  },
+  {
+   "text": "1 Chicken Biryani 2 320.00 640.00",
+   "angle": -0.009551159455682906,
+   "left": 42,
+   "top": 201,
+   "right": 711,
+   "bottom": 229
+  },
+  {
+   "text": "2 Beef Tehari 1 280.00 280.00",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 245,
+   "right": 711,
+   "bottom": 270
+  },
+  {
+   "text": "3  Borhani 3 60.00 180.00",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 289,
+   "right": 712,
+   "bottom": 314
+  },
+  {
+   "text": "4 Mineral Water 500ml 4 25.00 100.00",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 333,
+   "right": 712,
+   "bottom": 358
+  },
+  {
+   "text": "Total Items: 4",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 425,
+   "right": 259,
+   "bottom": 446
+  },
+  {
+   "text": "Subtotal 1,200.00",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 465,
+   "right": 719,
+   "bottom": 490
+  },
+  {
+   "text": "Service Charge (10%) 120.00",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 509,
+   "right": 720,
+   "bottom": 538
+  },
+  {
+   "text": "VAT (15%) 198.00",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 553,
+   "right": 720,
+   "bottom": 581
+  },
+  {
+   "text": "Grand Total 1,518.00",
+   "angle": -0.009551159455682906,
+   "left": 44,
+   "top": 597,
+   "right": 721,
+   "bottom": 625
+  }
+ ],
+ "split": [
+  {
+   "text": "THE BACKYARD",
+   "angle": -0.009551159455682906,
+   "left": 248,
+   "top": 27,
+   "right": 504,
+   "bottom": 51
+  },
+  {
+   "text": "Mirpur 10, Dhaka",
+   "angle": -0.009551159455682906,
+   "left": 38,
+   "top": 72,
+   "right": 286,
+   "bottom": 99
+  },
+  {
+   "text": "No Description",
+   "angle": -0.009551159455682906,
+   "left": 40,
+   "top": 160,
+   "right": 256,
+   "bottom": 186
+  },
+  {
+   "text": "Qty Rate Amount",
+   "angle": -0.009551159455682906,
+   "left": 384,
+   "top": 158,
+   "right": 678,
+   "bottom": 184
+  },
+  {
+   "text": "1 Chicken Biryani",
+   "angle": -0.009551159455682906,
+   "left": 42,
+   "top": 203,
+   "right": 319,
+   "bottom": 229
+  },
+  {
+   "text": "2 320.00 640.00",
+   "angle": -0.009551159455682906,
+   "left": 416,
+   "top": 201,
+   "right": 711,
+   "bottom": 223
+  },
+  {
+   "text": "2 Beef Tehari",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 248,
+   "right": 257,
+   "bottom": 270
+  },
+  {
+   "text": "1 280.00 280.00",
+   "angle": -0.009551159455682906,
+   "left": 418,
+   "top": 245,
+   "right": 711,
+   "bottom": 267
+  },
+  {
+   "text": "3  Borhani",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 293,
+   "right": 195,
+   "bottom": 314
+  },
+  {
+   "text": "3",
+   "angle": -0.009551159455682906,
+   "left": 417,
+   "top": 291,
+   "right": 429,
+   "bottom": 311
+  },
+  {
+   "text": "60.00 180.00",
+   "angle": -0.009551159455682906,
+   "left": 495,
+   "top": 289,
+   "right": 712,
+   "bottom": 310
+  },
+  {
+   "text": "4 Mineral Water 500ml 4",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 335,
+   "right": 431,
+   "bottom": 358
+  },
+  {
+   "text": "25.00 100.00",
+   "angle": -0.009551159455682906,
+   "left": 496,
+   "top": 333,
+   "right": 712,
+   "bottom": 354
+  },
+  {
+   "text": "Total Items: 4",
+   "angle": -0.009551159455682906,
+   "left": 41,
+   "top": 425,
+   "right": 259,
+   "bottom": 446
+  },
+  {
+   "text": "Subtotal",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 469,
+   "right": 164,
+   "bottom": 490
+  },
+  {
+   "text": "1,200.00",
+   "angle": -0.009551159455682906,
+   "left": 599,
+   "top": 465,
+   "right": 719,
+   "bottom": 488
+  },
+  {
+   "text": "Service Charge (10%)",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 511,
+   "right": 349,
+   "bottom": 538
+  },
+  {
+   "text": "120.00",
+   "angle": -0.009551159455682906,
+   "left": 630,
+   "top": 509,
+   "right": 720,
+   "bottom": 529
+  },
+  {
+   "text": "VAT (15%)",
+   "angle": -0.009551159455682906,
+   "left": 43,
+   "top": 557,
+   "right": 177,
+   "bottom": 581
+  },
+  {
+   "text": "198.00",
+   "angle": -0.009551159455682906,
+   "left": 631,
+   "top": 553,
+   "right": 720,
+   "bottom": 573
+  },
+  {
+   "text": "Grand Total",
+   "angle": -0.009551159455682906,
+   "left": 44,
+   "top": 600,
+   "right": 236,
+   "bottom": 625
+  },
+  {
+   "text": "1,518.00",
+   "angle": -0.009551159455682906,
+   "left": 578,
+   "top": 597,
+   "right": 721,
+   "bottom": 624
+  }
+ ]
+}

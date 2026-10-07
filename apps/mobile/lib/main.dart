@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/env.dart';
 import 'features/auth/auth_providers.dart';
+import 'features/bill/draft_bill_notifier.dart';
 import 'features/notifications/push_firebase.dart';
 import 'features/notifications/push_service.dart';
 import 'router.dart';
@@ -23,6 +24,9 @@ Future<void> main() async {
   runApp(const ProviderScope(child: SplitUpApp()));
 }
 
+/// Lets the app show a snackbar from anywhere (sync problems), whatever screen is open.
+final messengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class SplitUpApp extends ConsumerWidget {
   const SplitUpApp({super.key});
 
@@ -33,7 +37,19 @@ class SplitUpApp extends ConsumerWidget {
       final profile = next.value;
       if (profile != null) ref.read(pushServiceProvider).register(profile.id);
     });
+    // Problems saving to the server show up once, on whatever screen the person is on.
+    ref.listen(syncErrorProvider, (_, message) {
+      if (message == null) return;
+      messengerKey.currentState?.showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.coral,
+          content: Text(message, style: AppType.body16.copyWith(color: AppColors.white)),
+        ),
+      );
+      ref.read(syncErrorProvider.notifier).clear();
+    });
     return MaterialApp.router(
+      scaffoldMessengerKey: messengerKey,
       title: 'splitup',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),

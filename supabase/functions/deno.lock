@@ -4,8 +4,7 @@
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/encoding@1": "1.0.11",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "npm:@supabase/supabase-js@2": "2.117.2",
-    "npm:zod@3": "3.25.76"
+    "npm:@supabase/supabase-js@2": "2.117.2"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -72,17 +71,13 @@
     },
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
-    },
-    "zod@3.25.76": {
-      "integrity": "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="
     }
   },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",
       "jsr:@std/encoding@1",
-      "npm:@supabase/supabase-js@2",
-      "npm:zod@3"
+      "npm:@supabase/supabase-js@2"
     ]
   }
 }

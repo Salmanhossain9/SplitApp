@@ -50,3 +50,6 @@ apps/mobile/env.json
 build/
 .flutter-plugins*
 *.iml
+
+# Flutter golden failure images
+apps/mobile/test/failures/

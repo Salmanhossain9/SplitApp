@@ -185,12 +185,10 @@ select t.as_anon();
 select t.throws('select count(*) from bills', 'permission denied', 'anon cannot read bills');
 select t.throws('select count(*) from shares', 'permission denied', 'anon cannot read shares');
 select t.throws(format('select share_view(%L)', :tok), 'permission denied', 'anon cannot call share_view directly');
-select t.throws('select count(*) from rate_limits', 'permission denied', 'anon cannot read rate limits');
 reset role;
 
 select t.as_user(:b);
 select t.throws(format('select share_view(%L)', :tok), 'permission denied', 'a signed-in user cannot call share_view either (edge function only)');
-select t.throws('select count(*) from rate_limits', 'permission denied', 'rate limits are off limits to signed-in users');
 reset role;
 
 select t.as_service();
@@ -290,33 +288,11 @@ select t.ok((select read_at from notifications) is null, 'someone else''s read s
 reset role;
 
 -- ---------------------------------------------------------------------------
--- Storage: receipts live under {user_id}/{bill_id}/.
--- ---------------------------------------------------------------------------
-select t.as_user(:a);
-select t.ok((select count(*) from storage.buckets where id = 'receipts' and public = false) = 1, 'receipts bucket is private');
-select t.affects(format('insert into storage.objects (bucket_id, name) values (''receipts'', %L)', :a || '/' || :bill || '/r.jpg'), 1, 'owner uploads into their own folder');
-select t.throws(format('insert into storage.objects (bucket_id, name) values (''receipts'', %L)', :c || '/x/r.jpg'), 'row-level security', 'cannot upload into someone else''s folder');
-reset role;
-select t.as_user(:c);
-select t.ok((select count(*) from storage.objects) = 0, 'other users cannot list the receipt');
-reset role;
-
--- ---------------------------------------------------------------------------
 -- Profile creation cannot spoof the email.
 -- ---------------------------------------------------------------------------
 select t.as_user(:d);
 insert into profiles (id, name, email) values (:d, 'Dave', 'fake@spoof.test');
 select t.ok((select email from profiles where id = :d) = 'dave@x.test', 'client-supplied email is replaced by the auth email');
-reset role;
-
--- ---------------------------------------------------------------------------
--- Rate limit.
--- ---------------------------------------------------------------------------
-select t.as_service();
-select t.ok(take_rate_limit(:a, 'scan', 2, 60), 'rate limit: first hit allowed');
-select t.ok(take_rate_limit(:a, 'scan', 2, 60), 'rate limit: second hit allowed');
-select t.ok(not take_rate_limit(:a, 'scan', 2, 60), 'rate limit: third hit refused');
-select t.ok(take_rate_limit(:c, 'scan', 2, 60), 'rate limit is per user');
 reset role;
 
 drop schema t cascade;

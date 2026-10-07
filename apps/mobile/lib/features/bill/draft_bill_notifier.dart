@@ -211,7 +211,6 @@ class DraftBillNotifier extends Notifier<DraftBill> {
       serviceRateBp: rateBpFromAmount(r.service, subtotal),
       scannedTotal: r.total,
       clearScannedTotal: r.total == null,
-      receiptPath: r.receiptPath,
     ));
   }
 

@@ -88,7 +88,6 @@ BillRows draftToRows(DraftBill d, {required String hostUserId, required String h
       'split_mode': d.splitMode.name,
       'extras_mode': d.extrasMode == ExtrasMode.byItems ? 'by_items' : 'equally',
       'status': 'draft',
-      'receipt_path': d.receiptPath,
       'subtotal': d.subtotal,
       'total': d.total,
     },

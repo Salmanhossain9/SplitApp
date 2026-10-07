@@ -54,6 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return ScreenFrame(
       reserveBottom: true,
+      onRefresh: () => ref.refresh(billsProvider.future),
       gap: AppSpacing.s24,
       children: [
         Column(
@@ -83,7 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (bills.isLoading && !bills.hasValue)
           const SizedBox(height: AppSize.banner, child: Center(child: Sparkle()))
         else if (bills.hasError && !bills.hasValue)
-          ClaimedBanner(text: 'could not load your bills. pull to retry.', variant: BannerVariant.error)
+          const ClaimedBanner(text: 'could not load your bills. pull down to retry.', variant: BannerVariant.error)
         else if (isNew) ...[
           ActionTile(variant: ActionTileVariant.split, label: 'split a bill', onTap: _newBill),
           Text(

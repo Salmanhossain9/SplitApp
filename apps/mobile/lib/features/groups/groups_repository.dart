@@ -56,26 +56,11 @@ class SupabaseGroupsRepository implements GroupsRepository {
   }
 }
 
-/// Demo mode: a few sample groups that live in memory.
+/// Offline mode (no Supabase configured): groups live in memory. Starts empty; [initial] is for tests.
 class LocalGroupsRepository implements GroupsRepository {
-  final List<GroupCardData> _groups = [
-    GroupCardData(id: newUuid(), name: 'NSU boys', members: const [
-      Person(id: 'f_rafi', name: 'Rafi', avatarColor: 'coral'),
-      Person(id: 'f_nabil', name: 'Nabil', avatarColor: 'sky'),
-      Person(id: 'f_tania', name: 'Tania', avatarColor: 'lime'),
-    ]),
-    GroupCardData(id: newUuid(), name: 'Roommates', members: const [
-      Person(id: 'f_arif', name: 'Arif'),
-      Person(id: 'f_nabil', name: 'Nabil', avatarColor: 'sky'),
-    ]),
-    GroupCardData(id: newUuid(), name: 'Office lunch', members: const [
-      Person(id: 'f_mim', name: 'Mim', avatarColor: 'coral'),
-      Person(id: 'f_arif', name: 'Arif'),
-      Person(id: 'f_rafi', name: 'Rafi', avatarColor: 'coral'),
-      Person(id: 'f_tania', name: 'Tania', avatarColor: 'lime'),
-      Person(id: 'f_nabil', name: 'Nabil', avatarColor: 'sky'),
-    ]),
-  ];
+  LocalGroupsRepository({List<GroupCardData> initial = const []}) : _groups = [...initial];
+
+  final List<GroupCardData> _groups;
 
   @override
   Future<List<GroupCardData>> load() async => List.of(_groups);

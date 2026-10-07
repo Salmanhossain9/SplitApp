@@ -1,0 +1,296 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:splitup/features/scan/receipt_parser.dart';
+import 'package:splitup/features/scan/scan_models.dart';
+
+/// Real Tesseract output for rendered receipts (tool/ocr_fixtures). Tesseract stands in for
+/// ML Kit: both give text lines with boxes. "lines" keeps each printed row whole, "split" cuts
+/// rows at wide gaps (name | price) the way ML Kit often does.
+Map<String, List<OcrLine>> fixture(String name) {
+  final json = jsonDecode(File('test/fixtures/ocr/$name.json').readAsStringSync()) as Map<String, dynamic>;
+  List<OcrLine> read(String key) => [
+        for (final l in json[key] as List)
+          OcrLine(l['text'] as String,
+              left: (l['left'] as num).toDouble(),
+              top: (l['top'] as num).toDouble(),
+              right: (l['right'] as num).toDouble(),
+              bottom: (l['bottom'] as num).toDouble(),
+              angle: (l['angle'] as num?)?.toDouble() ?? 0),
+      ];
+  return {'lines': read('lines'), 'split': read('split')};
+}
+
+List<List<Object>> summary(ScanResult r) => [for (final i in r.items) [i.name, i.qty, i.unitPrice]];
+
+/// A line at row `y` (rows are 30 px apart) from x to x2.
+OcrLine line(String text, int y, {double x = 0, double x2 = 300}) =>
+    OcrLine(text, left: x, top: y * 30.0, right: x2, bottom: y * 30.0 + 22);
+
+void main() {
+  group('clean receipts (real OCR output)', () {
+    for (final variant in ['lines', 'split']) {
+      test('Chillox, $variant', () {
+        final r = ReceiptParser.parse(fixture('chillox')[variant]!);
+        expect(r.place, 'Chillox');
+        expect(summary(r), [
+          ['Chicken burger', 1, 34500],
+          ['Beef kala bhuna', 1, 114500],
+          ['Fries', 1, 24000],
+          ['Coke', 3, 9000],
+        ]);
+        expect([r.vat, r.service, r.total], [11800, 11800, 223600]);
+        expect(r.subtotal, 200000); // The lines add up to the printed subtotal.
+      });
+
+      test('table with serial, qty, rate and amount columns, $variant', () {
+        final r = ReceiptParser.parse(fixture('backyard')[variant]!);
+        expect(r.place, 'The Backyard');
+        expect(summary(r), [
+          ['Chicken Biryani', 2, 32000],
+          ['Beef Tehari', 1, 28000],
+          ['Borhani', 3, 6000],
+          ['Mineral Water 500ml', 4, 2500],
+        ]);
+        expect([r.vat, r.service, r.total], [19800, 12000, 151800]);
+        expect(r.subtotal, 120000);
+      });
+
+      test('Tk and /- currency marks, $variant', () {
+        final r = ReceiptParser.parse(fixture('pizza')[variant]!);
+        expect(r.place, 'Pizza Roma');
+        expect(summary(r), [
+          ['Margherita Pizza', 1, 95000],
+          ['Garlic Bread', 1, 22000],
+          ['Lemonade', 2, 15000],
+        ]);
+        expect([r.vat, r.service, r.total], [null, null, 147000]);
+      });
+    }
+  });
+
+  group('noisy phone-photo style OCR', () {
+    // Tesseract misreads some digits here ("345.06", "118.060", "640,00"). The parser must
+    // still get every item, quantity and extra, within a taka, and flag nothing as an item that is not.
+    void within(int actual, int truth, String what) =>
+        expect((actual - truth).abs(), lessThanOrEqualTo(100), reason: '$what: $actual vs $truth');
+
+    for (final variant in ['lines', 'split']) {
+      test('Chillox, $variant', () {
+        final r = ReceiptParser.parse(fixture('chillox_noisy')[variant]!);
+        expect(r.items.map((i) => [i.name, i.qty]), [
+          ['Chicken burger', 1], ['Beef kala bhuna', 1], ['Fries', 1], ['Coke', 3],
+        ]);
+        const truth = [34500, 114500, 24000, 9000];
+        for (var i = 0; i < 4; i++) {
+          within(r.items[i].unitPrice, truth[i], r.items[i].name);
+        }
+        within(r.vat!, 11800, 'vat');
+        within(r.service!, 11800, 'service');
+        expect(r.total, 223600);
+      });
+
+      test('table, $variant', () {
+        final r = ReceiptParser.parse(fixture('backyard_noisy')[variant]!);
+        expect(r.items.map((i) => [i.name, i.qty]), [
+          ['Chicken Biryani', 2], ['Beef Tehari', 1], ['Borhani', 3], ['Mineral Water 500ml', 4],
+        ]);
+        const truth = [32000, 28000, 6000, 2500];
+        for (var i = 0; i < 4; i++) {
+          within(r.items[i].unitPrice, truth[i], r.items[i].name);
+        }
+        expect([r.vat, r.service, r.total], [19800, 12000, 151800]);
+      });
+    }
+  });
+
+  group('rows from positions', () {
+    test('name and price as separate pieces on the same row, even a few pixels apart', () {
+      final r = ReceiptParser.parse([
+        line('Fries', 5, x: 0, x2: 80),
+        line('240.00', 5, x: 220, x2: 300).shift(dy: 4),
+        line('Coke x3', 6, x: 0, x2: 90),
+        line('270', 6, x: 230, x2: 300).shift(dy: -3),
+        line('Total', 9, x: 0, x2: 70),
+        line('510', 9, x: 230, x2: 300),
+      ]);
+      expect(summary(r), [['Fries', 1, 24000], ['Coke', 3, 9000]]);
+      expect(r.total, 51000);
+    });
+
+    test('a tilted photo: the tilt reported by the OCR straightens the rows', () {
+      // 3 degrees clockwise: the right end of each row sits lower than the left end.
+      const tilt = 0.0524;
+      OcrLine tilted(String t, int row, double x, double x2) =>
+          OcrLine(t, left: x, top: row * 40.0 + x * 0.0524, right: x2, bottom: row * 40.0 + 20 + x2 * 0.0524, angle: tilt);
+      final r = ReceiptParser.parse([
+        tilted('Fries', 1, 0, 80), tilted('240.00', 1, 520, 600),
+        tilted('Coke x3', 2, 0, 90), tilted('270.00', 2, 520, 600),
+        tilted('Total', 4, 0, 70), tilted('510.00', 4, 520, 600),
+      ]);
+      expect(summary(r), [['Fries', 1, 24000], ['Coke', 3, 9000]]);
+      expect(r.total, 51000);
+    });
+
+    test('lines may arrive in any order', () {
+      final r = ReceiptParser.parse([
+        line('Total 510', 9),
+        line('Coke x3 270', 6),
+        line('Fries 240', 5),
+      ]);
+      expect(summary(r), [['Fries', 1, 24000], ['Coke', 3, 9000]]);
+      expect(r.total, 51000);
+    });
+
+    test('a wrapped name with the price on the next row', () {
+      final r = ReceiptParser.parse([
+        line('Chicken burger with', 5),
+        line('345', 6),
+        line('Fries', 7),
+        line('240', 7, x: 250),
+      ]);
+      expect(r.items.length, 2);
+      expect(r.items.first.unitPrice, 34500);
+      expect(r.items.last.name, 'Fries');
+    });
+  });
+
+  group('quantities', () {
+    List<List<Object>> parse(List<String> rows) =>
+        summary(ReceiptParser.parse([for (var i = 0; i < rows.length; i++) line(rows[i], i)]));
+
+    test('the usual ways a receipt writes them', () {
+      expect(parse(['Coke x3 270']), [['Coke', 3, 9000]]);
+      expect(parse(['Coke 3x 270']), [['Coke', 3, 9000]]);
+      expect(parse(['Coke qty 3 270']), [['Coke', 3, 9000]]);
+      expect(parse(['Coke 3 x 90.00 270.00']), [['Coke', 3, 9000]]);
+      expect(parse(['Coke 3 90.00 270.00']), [['Coke', 3, 9000]]);
+      expect(parse(['Coke 90.00 270.00']), [['Coke', 3, 9000]]);
+      expect(parse(['Fries 2 480']), [['Fries', 2, 24000]]);
+      expect(parse(['2 Chicken burger 690']), [['Chicken burger', 2, 34500]]);
+    });
+
+    test('a serial number is not a quantity', () {
+      expect(parse(['1. Chicken burger 345', '2) Fries 240']), [['Chicken burger', 1, 34500], ['Fries', 1, 24000]]);
+      expect(parse(['3  Borhani 60.00 60.00']), [['Borhani', 1, 6000]]);
+    });
+
+    test('a line total that does not divide by the quantity stays exact', () {
+      // 3 x 33.34 printed as 100.01: one unit at the full price keeps the subtotal right.
+      expect(parse(['Mix platter x3 100.01']), [['Mix platter x3', 1, 10001]]);
+    });
+  });
+
+  group('what is not an item', () {
+    test('header, contact, date, payment and footer lines', () {
+      final r = ReceiptParser.parse([
+        line('THE BACKYARD', 0),
+        line('Mirpur 10, Dhaka 1216', 1),
+        line('Tel: 01711123456', 2),
+        line('Date: 21/09/2026 21:04', 3),
+        line('Bill No 10492   Table 4', 4),
+        line('Item Qty Price Amount', 5),
+        line('Chicken Biryani 320', 6),
+        line('Sub Total 320', 7),
+        line('VAT 15% 48', 8),
+        line('Grand Total 368', 9),
+        line('Cash 500', 10),
+        line('Change 132', 11),
+        line('Thank you, visit again', 12),
+      ]);
+      expect(summary(r), [['Chicken Biryani', 1, 32000]]);
+      expect([r.vat, r.service, r.total], [4800, null, 36800]);
+      expect(r.place, 'The Backyard');
+    });
+
+    test('discounts and rounding are not items, "Total Items" is not the total', () {
+      final r = ReceiptParser.parse([
+        line('Fries 240', 0),
+        line('Total Items 1', 1),
+        line('Discount 20', 2),
+        line('Rounding 0.40', 3),
+        line('Net Payable 220', 4),
+      ]);
+      expect(summary(r), [['Fries', 1, 24000]]);
+      expect(r.total, 22000);
+    });
+
+    test('a food name that merely contains a keyword is kept', () {
+      final r = ReceiptParser.parse([
+        line('Vegetable Soup 180', 0),
+        line('Card Special Burger 250', 1),
+        line('Total 430', 2),
+      ]);
+      expect(r.items.map((i) => i.name), ['Vegetable Soup', 'Card Special Burger']);
+    });
+  });
+
+  group('extras', () {
+    test('CGST and SGST rows add up as VAT; the grand total wins over a plain total', () {
+      final r = ReceiptParser.parse([
+        line('Fries 240', 0),
+        line('Total 240', 1),
+        line('CGST 2.5% 6', 2),
+        line('SGST 2.5% 6', 3),
+        line('Service Charge 10% 24', 4),
+        line('Grand Total 276', 5),
+      ]);
+      expect([r.vat, r.service, r.total], [1200, 2400, 27600]);
+    });
+
+    test('no extras printed means none found', () {
+      final r = ReceiptParser.parse([line('Tea 40', 0), line('Total 40', 1)]);
+      expect([r.vat, r.service, r.total], [null, null, 4000]);
+    });
+  });
+
+  group('Bangla digits and symbols', () {
+    test('digits, the taka sign and /-', () {
+      final r = ReceiptParser.parse([
+        line('Chicken burger ৳৩৪৫', 0),
+        line('Fries ২৪০/-', 1),
+        line('Total ৫৮৫', 2),
+      ]);
+      expect(summary(r), [['Chicken burger', 1, 34500], ['Fries', 1, 24000]]);
+      expect(r.total, 58500);
+    });
+  });
+
+  group('names', () {
+    test('SHOUTING names are title-cased, leaders and bullets removed', () {
+      final r = ReceiptParser.parse([
+        line('CHICKEN BURGER ........ 345', 0),
+        line('• Fries --- 240', 1),
+      ]);
+      expect(r.items.map((i) => i.name), ['Chicken Burger', 'Fries']);
+    });
+
+    test('OCR comma mistakes in amounts', () {
+      final r = ReceiptParser.parse([
+        line('Beef kala bhuna 1, 145,00', 0),
+        line('Fries 240,00', 1),
+        line('Big feast 1,00,000.00', 2),
+      ]);
+      expect(r.items.map((i) => i.unitPrice), [114500, 24000, 10000000]);
+    });
+  });
+
+  group('nothing usable', () {
+    test('empty and garbage input give no items instead of invented ones', () {
+      expect(ReceiptParser.parse(const []).items, isEmpty);
+      expect(ReceiptParser.parse([line('', 0), line('   ', 1)]).items, isEmpty);
+      expect(ReceiptParser.parse([line('asdf qwer', 0), line('!!! ???', 1), line('12345', 2)]).items, isEmpty);
+    });
+
+    test('a receipt with items but no totals still returns the items', () {
+      final r = ReceiptParser.parse([line('Fries 240', 0), line('Coke 90', 1)]);
+      expect(r.items.length, 2);
+      expect([r.vat, r.service, r.total], [null, null, null]);
+    });
+  });
+}
+
+extension on OcrLine {
+  OcrLine shift({double dy = 0}) => OcrLine(text, left: left, top: top + dy, right: right, bottom: bottom + dy);
+}

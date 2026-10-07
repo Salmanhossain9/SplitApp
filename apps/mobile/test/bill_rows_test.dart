@@ -62,7 +62,6 @@ void main() {
       'split_mode': 'items',
       'extras_mode': 'equally',
       'status': 'draft',
-      'receipt_path': null,
       'subtotal': 200000,
       'total': 223600,
     });
