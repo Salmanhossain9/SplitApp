@@ -40,6 +40,14 @@ class FakeShare implements ShareService {
     whatsapp.add(text);
     return whatsappWorks;
   }
+
+  final opened = <String>[];
+
+  @override
+  Future<bool> openUrl(String url) async {
+    opened.add(url);
+    return true;
+  }
 }
 
 class StubScanner implements ReceiptScanner {

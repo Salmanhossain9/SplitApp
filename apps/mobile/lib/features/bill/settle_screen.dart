@@ -5,7 +5,10 @@ import 'package:split_core/split_core.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
+import 'bill_rows.dart';
+import 'bill_summary.dart';
 import 'draft_bill.dart';
+import 'remind.dart';
 import 'draft_bill_notifier.dart';
 
 /// Screen 10: tick off how each friend pays you back. Cash, bKash and bank are labels only.
@@ -126,7 +129,23 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
               AppPill('${tabs.length} open', background: AppColors.coral),
             ],
           ),
-          for (final f in tabs) TabCard(name: f.name, amount: d.entryOf(f.id).owed, onRemind: () {}),
+          for (final f in tabs)
+            TabCard(
+              name: f.name,
+              amount: d.entryOf(f.id).owed,
+              onRemind: () => remindFriend(
+                context,
+                ref,
+                OpenTab(
+                  billId: d.id,
+                  participantId: participantIdFor(d.id, f.id),
+                  personName: f.name,
+                  place: d.place,
+                  owed: d.entryOf(f.id).owed,
+                  phone: f.phone,
+                ),
+              ),
+            ),
         ],
       ],
     );

@@ -26,6 +26,9 @@ abstract class ShareService {
 
   /// Opens WhatsApp with the text ready to send. False when it could not be opened.
   Future<bool> openWhatsapp(String text);
+
+  /// Opens any link (a WhatsApp reminder for a guest). False when nothing could open it.
+  Future<bool> openUrl(String url);
 }
 
 class DeviceShareService implements ShareService {
@@ -42,12 +45,28 @@ class DeviceShareService implements ShareService {
   }
 
   @override
+  Future<bool> openUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    return uri != null && await _open(uri);
+  }
+
+  @override
   Future<bool> openWhatsapp(String text) async {
     try {
       if (await launchUrl(whatsappAppUri(text), mode: LaunchMode.externalApplication)) return true;
     } catch (_) {}
     try {
       return await launchUrl(whatsappWebUri(text), mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+extension on DeviceShareService {
+  Future<bool> _open(Uri u) async {
+    try {
+      return await launchUrl(u, mode: LaunchMode.externalApplication);
     } catch (_) {
       return false;
     }

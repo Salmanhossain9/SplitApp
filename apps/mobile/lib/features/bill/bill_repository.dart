@@ -3,9 +3,13 @@ import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:split_core/split_core.dart' show formatTaka;
+
 import '../../core/env.dart';
+import '../../core/phone.dart';
 import '../../ui/settle_row.dart' show SettleMethod;
 import 'bill_rows.dart';
+import 'bill_summary.dart';
 import 'draft_bill.dart';
 
 class FinalizeResult {
@@ -25,6 +29,32 @@ class HostInfo {
   const HostInfo({required this.userId, required this.name});
   final String userId;
   final String name;
+}
+
+/// What happened when the host tapped `remind`.
+sealed class RemindOutcome {
+  const RemindOutcome();
+}
+
+/// A push or in-app notification went out.
+class RemindSent extends RemindOutcome {
+  const RemindSent();
+}
+
+/// A guest has no push: open this WhatsApp link with the message ready.
+class RemindWhatsapp extends RemindOutcome {
+  const RemindWhatsapp(this.link);
+  final String link;
+}
+
+class RemindTooSoon extends RemindOutcome {
+  const RemindTooSoon(this.hours);
+  final int hours;
+}
+
+class RemindFailed extends RemindOutcome {
+  const RemindFailed(this.message);
+  final String message;
 }
 
 /// Where bills live. Screens never talk to Supabase; they go through the notifier, which goes
@@ -47,6 +77,13 @@ abstract class BillRepository {
 
   /// Settle rows changing on another device, keyed by person id (milestone 4 realtime).
   Stream<Map<String, SettleEntry>> watchSettlements(DraftBill draft);
+
+  /// The host's sent bills (open and settled), newest first.
+  Future<List<BillSummary>> listBills();
+
+  /// Nudge a friend about their open tab: push or notification for app users, a WhatsApp
+  /// link for guests. One reminder per tab per 24 hours.
+  Future<RemindOutcome> remind(OpenTab tab);
 }
 
 SettleMethod? methodFromDb(String? v) => switch (v) {
@@ -180,6 +217,45 @@ class SupabaseBillRepository implements BillRepository {
             });
   }
 
+  @override
+  Future<List<BillSummary>> listBills() async {
+    final host = _requireHost();
+    try {
+      final rows = await _client
+          .from('bills')
+          .select('id, place, total, status, billed_at, '
+              'bill_participants(id, name, is_host, user_id), '
+              'shares(participant_id, total), '
+              'settlements(participant_id, method, paid_amount, owed_amount, last_reminded_at)')
+          .eq('created_by', host.userId)
+          .neq('status', 'draft')
+          .order('billed_at', ascending: false)
+          .limit(200);
+      return [for (final r in rows) BillSummary.fromRow(r)];
+    } on PostgrestException catch (e) {
+      throw BillSyncException(_friendly(e));
+    }
+  }
+
+  @override
+  Future<RemindOutcome> remind(OpenTab tab) async {
+    try {
+      final res = await _client.functions.invoke(
+        'send-reminders',
+        body: {'bill_id': tab.billId, 'participant_id': tab.participantId},
+      );
+      final data = res.data as Map<String, dynamic>;
+      final link = data['whatsapp'] as String?;
+      return link != null ? RemindWhatsapp(link) : const RemindSent();
+    } on FunctionException catch (e) {
+      final d = e.details;
+      if (e.status == 429 && d is Map) return RemindTooSoon((d['retry_in_hours'] as num?)?.toInt() ?? 24);
+      return const RemindFailed('could not send the reminder. try again.');
+    } catch (_) {
+      return const RemindFailed('could not send the reminder. try again.');
+    }
+  }
+
   String _friendly(PostgrestException e) {
     final text = e.message.toLowerCase();
     if (text.contains('row-level security') || text.contains('permission denied')) {
@@ -190,8 +266,39 @@ class SupabaseBillRepository implements BillRepository {
   }
 }
 
-/// Demo mode: nothing leaves the device. "Finalize" only hands back a fake share link.
+/// Demo mode: nothing leaves the device. Bills sent in this session are kept in memory so the
+/// home screen shows them, and a few samples make the dashboard look alive.
 class LocalBillRepository implements BillRepository {
+  LocalBillRepository({bool seed = true, DateTime? now}) : _now = now {
+    if (seed) _seedSamples(now ?? DateTime.now());
+  }
+
+  /// Fixed "now" for tests; real time when null.
+  final DateTime? _now;
+
+  final Map<String, BillSummary> _bills = {};
+  final Map<String, DateTime> _lastReminded = {};
+
+  void _seedSamples(DateTime now) {
+    BillSummary sample(String id, String place, int daysAgo, int total, int friends, int target, int collected,
+        {List<OpenTab> tabs = const [], bool settled = true}) {
+      return BillSummary(
+        id: id,
+        place: place,
+        billedAt: now.subtract(Duration(days: daysAgo)),
+        total: total,
+        status: settled ? DraftStatus.settled : DraftStatus.open,
+        friendCount: friends,
+        target: target,
+        collected: collected,
+        tabs: tabs,
+      );
+    }
+
+    _bills['demo-1'] = sample('demo-1', 'Pizza Roma', 3, 154050, 3, 103500, 103500);
+    _bills['demo-2'] = sample('demo-2', 'Star Kabab', 7, 98000, 4, 73000, 40000, settled: false);
+  }
+
   @override
   bool get enabled => false;
 
@@ -201,15 +308,53 @@ class LocalBillRepository implements BillRepository {
   @override
   Future<FinalizeResult> finalize(DraftBill draft) async {
     final token = List.generate(22, (_) => 'abcdefghijklmnopqrstuvwxyz0123456789'[Random().nextInt(36)]).join();
+    _bills[draft.id] = BillSummary.fromDraft(draft.copyWith(status: DraftStatus.open), now: _now);
     return FinalizeResult(shareUrl: '${Env.shareBaseUrl}/s/$token', total: draft.total);
   }
 
   @override
-  Future<void> saveSettlement(DraftBill draft, String personId) async {}
+  Future<void> saveSettlement(DraftBill draft, String personId) async {
+    final existing = _bills[draft.id];
+    _bills[draft.id] = BillSummary.fromDraft(draft, now: existing?.billedAt ?? _now);
+  }
 
   @override
-  Future<void> markSettled(String billId) async {}
+  Future<void> markSettled(String billId) async {
+    final b = _bills[billId];
+    if (b == null) return;
+    _bills[billId] = BillSummary(
+      id: b.id,
+      place: b.place,
+      billedAt: b.billedAt,
+      total: b.total,
+      status: DraftStatus.settled,
+      friendCount: b.friendCount,
+      target: b.target,
+      collected: b.collected,
+      tabs: b.tabs,
+    );
+  }
 
   @override
   Stream<Map<String, SettleEntry>> watchSettlements(DraftBill draft) => const Stream.empty();
+
+  @override
+  Future<List<BillSummary>> listBills() async =>
+      _bills.values.toList()..sort((a, b) => b.billedAt.compareTo(a.billedAt));
+
+  @override
+  Future<RemindOutcome> remind(OpenTab tab) async {
+    final key = '${tab.billId}/${tab.participantId}';
+    final last = _lastReminded[key];
+    if (last != null && DateTime.now().difference(last) < const Duration(hours: 24)) {
+      return RemindTooSoon(24 - DateTime.now().difference(last).inHours);
+    }
+    _lastReminded[key] = DateTime.now();
+    final phone = tab.phone;
+    if (phone != null && phone.isNotEmpty) {
+      final link = whatsappChatUri(phone, 'You still owe ${formatTaka(tab.owed)} for ${tab.place}.');
+      if (link != null) return RemindWhatsapp(link.toString());
+    }
+    return const RemindSent();
+  }
 }

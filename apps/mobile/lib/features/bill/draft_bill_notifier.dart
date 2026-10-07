@@ -4,28 +4,17 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/env.dart';
 import '../../core/ids.dart';
 import '../../core/person.dart';
 import '../../ui/settle_row.dart' show SettleMethod;
-import '../auth/auth_providers.dart';
 import '../groups/groups_provider.dart';
 import '../scan/scan_models.dart';
 import 'bill_repository.dart';
+import 'bills_provider.dart';
 import 'draft_bill.dart';
 
 const _prefsKey = 'draft_bill_v1';
-
-final billRepositoryProvider = Provider<BillRepository>((ref) {
-  if (!Env.isConfigured) return LocalBillRepository();
-  return SupabaseBillRepository(Supabase.instance.client, () {
-    final id = ref.read(authRepositoryProvider).userId;
-    if (id == null) return null;
-    return HostInfo(userId: id, name: ref.read(profileProvider).value?.name ?? 'Host');
-  });
-});
 
 /// The last problem syncing with the server (null when fine). Screens show it once and clear it.
 final syncErrorProvider = NotifierProvider<SyncErrorNotifier, String?>(SyncErrorNotifier.new);
@@ -278,6 +267,7 @@ class DraftBillNotifier extends Notifier<DraftBill> {
     try {
       final r = await _repo.finalize(state);
       _set(state.copyWith(status: DraftStatus.open, settlements: const {}, shareUrl: r.shareUrl));
+      ref.invalidate(billsProvider);
       return const SendResult.ok();
     } on BillSyncException catch (e) {
       return SendResult.failed(e.message);
@@ -312,8 +302,8 @@ class DraftBillNotifier extends Notifier<DraftBill> {
   }
 
   void _pushSettlement(String personId) {
-    if (!_repo.enabled) return;
-    _repo.saveSettlement(state, personId).catchError((Object e) {
+    // Also in demo mode: the local repository keeps the dashboard in step with the settle screen.
+    _repo.saveSettlement(state, personId).then((_) => ref.invalidate(billsProvider)).catchError((Object e) {
       ref.read(syncErrorProvider.notifier).report(e.toString());
     });
   }
@@ -352,6 +342,7 @@ class DraftBillNotifier extends Notifier<DraftBill> {
       return false;
     }
     _set(state.copyWith(status: DraftStatus.settled));
+    ref.invalidate(billsProvider);
     return true;
   }
 }

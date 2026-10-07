@@ -47,3 +47,9 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// Push (FCM) needs a Firebase project. Drop google-services.json next to this file to switch
+// it on; without it the app builds and runs normally and push stays off.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}

@@ -14,6 +14,10 @@ import 'features/bill/new_bill_screen.dart';
 import 'features/bill/settle_screen.dart';
 import 'features/gallery/gallery_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/money/money_screen.dart';
+import 'features/notifications/notifications_screen.dart';
+import 'features/settings/settings_screen.dart';
+import 'features/shell/app_shell.dart';
 import 'features/share/share_view_screen.dart';
 import 'features/welcome/welcome_screen.dart';
 import 'theme/tokens.dart';
@@ -66,7 +70,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => VerifyScreen(email: state.uri.queryParameters['email'] ?? ''),
       ),
       GoRoute(path: '/auth/profile', builder: (_, _) => const ProfileScreen()),
-      GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => AppShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (_, _) => const HomeScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/money', builder: (_, _) => const MoneyScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen())]),
+        ],
+      ),
       GoRoute(path: '/bill/new', builder: (_, _) => const NewBillScreen()),
       GoRoute(path: '/bill/:id/items', builder: (_, _) => const ItemsScreen()),
       GoRoute(path: '/bill/:id/claim', builder: (_, _) => const ClaimScreen()),
