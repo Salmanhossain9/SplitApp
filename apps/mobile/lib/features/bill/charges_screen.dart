@@ -5,6 +5,7 @@ import 'package:split_core/split_core.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
+import '../share/share_bills_sheet.dart';
 import 'draft_bill_notifier.dart';
 
 /// Screen 9: vat and service, how extras are split, whose bill is what, send bills.
@@ -24,6 +25,9 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
     if (!mounted) return;
     setState(() => _sending = false);
     if (result.ok) {
+      // Send bills opens the share sheet, then moves on to settle up.
+      await showShareBillsSheet(context);
+      if (!mounted) return;
       context.pushReplacement('/bill/${ref.read(draftBillProvider).id}/settle');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

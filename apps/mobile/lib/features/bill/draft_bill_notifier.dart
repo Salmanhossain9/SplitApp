@@ -12,6 +12,7 @@ import '../../core/person.dart';
 import '../../ui/settle_row.dart' show SettleMethod;
 import '../auth/auth_providers.dart';
 import '../groups/groups_provider.dart';
+import '../scan/scan_models.dart';
 import 'bill_repository.dart';
 import 'draft_bill.dart';
 
@@ -204,6 +205,24 @@ class DraftBillNotifier extends Notifier<DraftBill> {
       items: [for (final i in state.items) if (i.id != id) i],
       claims: {...state.claims}..remove(id),
       itemsConfirmed: false,
+    ));
+  }
+
+  /// Fill the draft from a scan: items, the place if it is still empty, the detected VAT and
+  /// service as rates, and the receipt total to check against. Nothing is final until the
+  /// person confirms the editable list.
+  void applyScan(ScanResult r) {
+    final subtotal = r.subtotal;
+    _set(state.copyWith(
+      items: r.toDraftItems(),
+      claims: const {},
+      itemsConfirmed: false,
+      place: state.place.trim().isEmpty && (r.place ?? '').isNotEmpty ? r.place : null,
+      vatRateBp: rateBpFromAmount(r.vat, subtotal),
+      serviceRateBp: rateBpFromAmount(r.service, subtotal),
+      scannedTotal: r.total,
+      clearScannedTotal: r.total == null,
+      receiptPath: r.receiptPath,
     ));
   }
 

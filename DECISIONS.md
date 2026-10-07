@@ -49,3 +49,13 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - **Draft sync** runs 1.2 s after the last edit, once there is a place, two people and an item, and always right before `finalize-bill`. Sync errors surface once as a snackbar on the settle screen.
 - **Demo mode** (no `env.json`): a local auth stub that is always signed in, in-memory sample groups and a no-op bill repository, so the app and all widget tests run without a backend.
 - Welcome (screen 1) and the three auth screens were built here because the router redirect needs them; the rest of milestone 6 (home, dashboard, notifications) is still to come.
+
+## Milestone 5 (scan and share)
+- **Scan flow:** the scan tab opens a live camera (`camera`, back lens, no audio) behind a `CameraGateway`, with `image_picker` for the gallery. If the camera or its permission is missing the tab says so and the gallery path still works. The photo is uploaded to `receipts/{user}/{bill}/{timestamp}.{ext}` (type taken from the file header) and `scan-receipt` reads it. The result fills the editable item list; the person must still tick "does this match your receipt?" before continuing.
+- **Detected VAT and service become rates** on the items subtotal (`rateBpFromAmount`, integer maths, half up). No detected line means 0%. The scanned receipt total is kept and shown next to ours with a matches/differs pill.
+- **No next button on the scan tab.** There is nothing to continue with until the list is confirmed.
+- **Demo mode scans the Chillox sample** after a short delay, so the whole flow is demonstrable without a backend or an API key.
+- **Sharing:** after `send bills` a sheet offers the link (system share sheet), WhatsApp (`whatsapp://send`, falling back to `wa.me`) and a PNG of everyone's share (a `RepaintBoundary` capture, shared through `share_plus`). One message for the group: the link shows each friend their own bill. `settle up` closes the sheet and continues.
+- **Deep links:** `https://splitup.app/s/{token}` (verified app link) and `splitup://splitup.app/s/{token}` open the in-app share view. Flutter's built-in deep link handling plus go_router does the routing, so the `app_links` package from the spec was not needed. The domain is a placeholder (`SHARE_BASE_URL`); the `assetlinks.json` for app link verification has to be hosted on the real domain.
+- **Narrow bill cards scale their numbers down** instead of overflowing (found by the share image test).
+- `flutter_svg` was removed: icons are drawn in code.

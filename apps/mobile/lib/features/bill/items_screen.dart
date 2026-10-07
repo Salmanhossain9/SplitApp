@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
+import '../scan/scan_models.dart';
+import '../scan/scan_tab.dart';
 import 'draft_bill_notifier.dart';
 
 /// Screen 4: add items by scanning (milestone 5) or by hand. Items stay editable.
@@ -18,18 +20,15 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
   late ItemsTab _tab =
       ref.read(draftBillProvider).items.isEmpty ? ItemsTab.scan : ItemsTab.manual;
 
-  void _scanComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'receipt scanning is coming soon. add items by hand for now.',
-          style: AppType.body16.copyWith(color: AppColors.white),
-        ),
-        backgroundColor: AppColors.navy,
-      ),
-    );
-    setState(() => _tab = ItemsTab.manual);
-    _ensureOneRow();
+  int? _foundCount;
+
+  void _onScanned(ScanResult result) {
+    ref.read(draftBillProvider.notifier).applyScan(result);
+    setState(() {
+      _foundCount = result.items.length;
+      _tab = ItemsTab.manual; // The editable list: the person confirms it before moving on.
+    });
+    if (result.items.isEmpty) _ensureOneRow();
   }
 
   void _ensureOneRow() {
@@ -61,25 +60,25 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
           ),
         ],
       ),
-      bottom: WideButton(
-        label: 'who had what?',
-        variant: WideButtonVariant.next,
-        enabled: _tab == ItemsTab.manual && draft.itemsStepValid,
-        onPressed: () => context.push('/bill/${draft.id}/claim'),
-      ),
+      // Nothing to continue with until the items list is confirmed, so no button on the scan tab.
+      bottom: _tab == ItemsTab.manual
+          ? WideButton(
+              label: 'who had what?',
+              variant: WideButtonVariant.next,
+              enabled: draft.itemsStepValid,
+              onPressed: () => context.push('/bill/${draft.id}/claim'),
+            )
+          : null,
       children: _tab == ItemsTab.scan
-          ? [
-              const ReceiptViewfinder(),
-              Center(
-                child: Text(
-                  'place the receipt inside the frame',
-                  style: AppType.label14.copyWith(color: AppColors.slate),
-                ),
-              ),
-              WideButton(label: 'take photo', variant: WideButtonVariant.photo, onPressed: _scanComingSoon),
-              WideButton(label: 'upload from photos', variant: WideButtonVariant.upload, onPressed: _scanComingSoon),
-            ]
+          ? [ScanTab(onScanned: _onScanned)]
           : [
+              if (_foundCount != null)
+                ClaimedBanner(
+                  text: _foundCount == 0
+                      ? 'we could not find items. add them below.'
+                      : 'found $_foundCount ${_foundCount == 1 ? 'item' : 'items'}. check them against the receipt.',
+                  variant: _foundCount == 0 ? BannerVariant.error : BannerVariant.ok,
+                ),
               for (final item in draft.items)
                 ItemEditCard(
                   key: ValueKey(item.id),
@@ -104,6 +103,8 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
               _TotalsCard(subtotal: draft.subtotal),
               _ConfirmCard(
                 confirmed: draft.itemsConfirmed,
+                receiptTotal: draft.scannedTotal,
+                ourTotal: draft.total,
                 onToggle: () => notifier.setItemsConfirmed(!draft.itemsConfirmed),
               ),
             ],
@@ -135,19 +136,58 @@ class _TotalsCard extends StatelessWidget {
 }
 
 class _ConfirmCard extends StatelessWidget {
-  const _ConfirmCard({required this.confirmed, required this.onToggle});
+  const _ConfirmCard({
+    required this.confirmed,
+    required this.onToggle,
+    required this.receiptTotal,
+    required this.ourTotal,
+  });
+
   final bool confirmed;
   final VoidCallback onToggle;
 
+  /// What the scanner read as the receipt's total, if it saw one.
+  final int? receiptTotal;
+
+  /// Items plus vat and service at the current rates.
+  final int ourTotal;
+
   @override
   Widget build(BuildContext context) {
+    final matches = receiptTotal != null && receiptTotal == ourTotal;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text('does this match your receipt?', style: AppType.body16)),
-          NameChip(label: confirmed ? 'yes' : 'not yet', on: confirmed, onTap: onToggle),
+          Row(
+            children: [
+              Expanded(child: Text('does this match your receipt?', style: AppType.body16)),
+              NameChip(label: confirmed ? 'yes' : 'not yet', on: confirmed, onTap: onToggle),
+            ],
+          ),
+          if (receiptTotal != null) ...[
+            const SizedBox(height: AppSpacing.s12),
+            Row(
+              children: [
+                Text('receipt total ', style: AppType.label14.copyWith(color: AppColors.slate)),
+                Money(receiptTotal!, style: AppType.label14),
+                Text('  .  ours ', style: AppType.label14.copyWith(color: AppColors.slate)),
+                Money(ourTotal, style: AppType.label14),
+                const Spacer(),
+                AppPill(matches ? 'matches' : 'differs', background: matches ? AppColors.lime : AppColors.coral),
+              ],
+            ),
+            if (!matches)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.s8),
+                child: Text(
+                  'vat and service rates are set on the last step. fix any item that looks off.',
+                  style: AppType.micro12.copyWith(color: AppColors.slate),
+                ),
+              ),
+          ],
         ],
       ),
     );

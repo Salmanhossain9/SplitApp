@@ -457,17 +457,30 @@ class BillCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Money(total, style: AppType.title24, color: fg, forceDecimals: true),
+          // Narrow cards (the share picture) shrink the numbers instead of overflowing.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Money(total, style: AppType.title24, color: fg, forceDecimals: true),
+          ),
           const SizedBox(height: 10),
-          Row(children: [
-            Text('items ', style: AppType.label14.copyWith(color: fg)),
-            Money(itemsAmount, style: AppType.label14, color: fg, forceDecimals: true),
-          ]),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(children: [
+              Text('items ', style: AppType.label14.copyWith(color: fg)),
+              Money(itemsAmount, style: AppType.label14, color: fg, forceDecimals: true),
+            ]),
+          ),
           const SizedBox(height: 2),
-          Row(children: [
-            Text('extras ', style: AppType.label14.copyWith(color: fg)),
-            Money(extrasAmount, style: AppType.label14, color: fg, forceDecimals: true),
-          ]),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(children: [
+              Text('extras ', style: AppType.label14.copyWith(color: fg)),
+              Money(extrasAmount, style: AppType.label14, color: fg, forceDecimals: true),
+            ]),
+          ),
         ],
       ),
     );

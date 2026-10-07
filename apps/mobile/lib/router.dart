@@ -14,6 +14,7 @@ import 'features/bill/new_bill_screen.dart';
 import 'features/bill/settle_screen.dart';
 import 'features/gallery/gallery_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/share/share_view_screen.dart';
 import 'features/welcome/welcome_screen.dart';
 import 'theme/tokens.dart';
 import 'ui/ui.dart';
@@ -71,6 +72,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/bill/:id/claim', builder: (_, _) => const ClaimScreen()),
       GoRoute(path: '/bill/:id/charges', builder: (_, _) => const ChargesScreen()),
       GoRoute(path: '/bill/:id/settle', builder: (_, _) => const SettleScreen()),
+      GoRoute(
+        path: '/s/:token',
+        builder: (_, state) => ShareViewScreen(token: state.pathParameters['token']!),
+      ),
       if (kDebugMode) GoRoute(path: '/gallery', builder: (_, _) => const GalleryScreen()),
     ],
   );

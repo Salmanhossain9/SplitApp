@@ -77,6 +77,8 @@ class DraftBill {
     this.status = DraftStatus.draft,
     this.settlements = const {},
     this.shareUrl,
+    this.scannedTotal,
+    this.receiptPath,
   });
 
   /// A new draft with a real UUID, so it can become a `bills` row as is.
@@ -107,6 +109,12 @@ class DraftBill {
 
   /// The link friends open (set once the bills are sent).
   final String? shareUrl;
+
+  /// The total the scanner read off the receipt, to check against ours (poisha).
+  final int? scannedTotal;
+
+  /// Storage path of the receipt photo.
+  final String? receiptPath;
 
   // ---- derived -------------------------------------------------------------
 
@@ -237,6 +245,9 @@ class DraftBill {
     DraftStatus? status,
     Map<String, SettleEntry>? settlements,
     String? shareUrl,
+    int? scannedTotal,
+    bool clearScannedTotal = false,
+    String? receiptPath,
   }) =>
       DraftBill(
         id: id ?? this.id,
@@ -256,6 +267,8 @@ class DraftBill {
         status: status ?? this.status,
         settlements: settlements ?? this.settlements,
         shareUrl: shareUrl ?? this.shareUrl,
+        scannedTotal: clearScannedTotal ? null : (scannedTotal ?? this.scannedTotal),
+        receiptPath: receiptPath ?? this.receiptPath,
       );
 
   Map<String, dynamic> toJson() => {
@@ -285,6 +298,8 @@ class DraftBill {
         'status': status.name,
         'settlements': {for (final e in settlements.entries) e.key: e.value.toJson()},
         'shareUrl': shareUrl,
+        'scannedTotal': scannedTotal,
+        'receiptPath': receiptPath,
       };
 
   factory DraftBill.fromJson(Map<String, dynamic> j) => DraftBill(
