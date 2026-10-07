@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>your bill . splitup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Same tokens as the app (apps/mobile/lib/theme/tokens.dart). Flat colour only. */
+    :root {
+      --navy: #12222F; --cream: #FBF7EF; --lavender: #8B76F0; --lime: #D8F85A;
+      --sky: #8FCDEF; --coral: #F4694F; --slate: #6F8393; --white: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--cream); color: var(--navy);
+      font-family: 'Plus Jakarta Sans', system-ui, 'Noto Sans Bengali', sans-serif;
+      font-weight: 500; letter-spacing: -0.01em;
+    }
+    main { max-width: 440px; margin: 0 auto; padding: 32px 24px 56px; display: grid; gap: 16px; }
+    .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; display: flex; align-items: center; gap: 8px; }
+    .mark { width: 28px; height: 28px; border-radius: 50%; background: var(--lavender); position: relative; overflow: hidden; }
+    .mark::after { content: ''; position: absolute; right: 0; top: 0; width: 50%; height: 100%; background: var(--lime); }
+    h1 { font-size: 36px; line-height: 1; letter-spacing: -0.04em; margin: 8px 0 0; font-weight: 700; }
+    .sub { color: var(--slate); font-size: 14px; margin: 0; }
+    .card { border-radius: 28px; padding: 24px; }
+    .total { background: var(--sky); }
+    .label { font-size: 16px; margin: 0; }
+    .amount { font-size: 56px; line-height: 1; letter-spacing: -0.04em; font-weight: 700; margin: 8px 0 0; }
+    .amount small { font-weight: 400; }
+    .pill { display: inline-block; border-radius: 999px; padding: 6px 12px; font-size: 12px; }
+    .pill.settled { background: var(--lime); }
+    .pill.open { background: var(--coral); color: var(--white); }
+    .person { background: var(--white); display: grid; gap: 8px; }
+    .person.you { background: var(--lavender); color: var(--white); }
+    .person header { display: flex; justify-content: space-between; align-items: baseline; font-size: 20px; }
+    .person b { font-weight: 700; }
+    .breakdown { font-size: 14px; display: flex; gap: 16px; opacity: .9; }
+    .things { font-size: 14px; color: var(--slate); }
+    .you .things { color: var(--white); }
+    .pay { background: var(--lime); }
+    .pay button {
+      all: unset; cursor: pointer; margin-top: 12px; background: var(--lavender); color: var(--white);
+      border-radius: 999px; padding: 14px 24px; font-size: 16px; display: inline-block;
+    }
+    .pay .num { font-size: 36px; font-weight: 700; letter-spacing: -0.04em; margin: 4px 0 0; }
+    .msg { text-align: center; padding: 64px 0; }
+    .foot { text-align: center; font-size: 12px; color: var(--slate); }
+  </style>
+</head>
+<body>
+<main id="app"><div class="logo"><span class="mark"></span>splitup</div><p class="sub">loading your bill...</p></main>
+<script>
+  // Set this to your Supabase project's functions URL before deploying, for example
+  // https://abcd1234.supabase.co/functions/v1/share-view
+  const API = window.SPLITUP_SHARE_API || '__SHARE_VIEW_URL__';
+
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function taka(poisha, forceDecimals) {
+    const whole = Math.floor(poisha / 100), frac = poisha % 100;
+    const s = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return '৳' + s + (frac || forceDecimals ? '.' + String(frac).padStart(2, '0') : '');
+  }
+  function big(poisha) {
+    const whole = Math.floor(poisha / 100), frac = poisha % 100;
+    const s = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return '৳' + s + (frac ? '<small>.' + String(frac).padStart(2, '0') + '</small>' : '');
+  }
+  function show(html) {
+    document.getElementById('app').innerHTML = '<div class="logo"><span class="mark"></span>splitup</div>' + html;
+  }
+  function render(d) {
+    const date = new Date(d.billed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const people = d.people.map((p) => `
+      <section class="card person${p.is_host ? ' you' : ''}">
+        <header><b>${esc(p.name)}${p.is_host ? ' (host)' : ''}</b><b>${taka(p.total, true)}</b></header>
+        <div class="breakdown"><span>items ${taka(p.items_amount, true)}</span><span>extras ${taka(p.extras_amount, true)}</span></div>
+        ${p.items.length ? `<div class="things">${p.items.map((i) => esc(i.name) + (i.qty > 1 ? ' x' + i.qty : '')).join(' . ')}</div>` : ''}
+      </section>`).join('');
+    const bkash = d.host_bkash ? `
+      <section class="card pay">
+        <p class="label">send your share to ${esc(d.host_name)} on bKash</p>
+        <p class="num" id="num">${esc(d.host_bkash)}</p>
+        <button id="copy" type="button">copy number</button>
+      </section>` : '';
+    show(`
+      <h1>${esc(d.place)}</h1>
+      <p class="sub">${date} . paid by ${esc(d.host_name)} . <span class="pill ${d.status === 'settled' ? 'settled' : 'open'}">${d.status === 'settled' ? 'settled' : 'open'}</span></p>
+      <section class="card total"><p class="label">total bill</p><p class="amount">${big(d.total)}</p></section>
+      ${people}
+      ${bkash}
+      <p class="foot">made with splitup. scan, claim, settle.</p>`);
+    const btn = document.getElementById('copy');
+    if (btn) btn.onclick = async () => {
+      try { await navigator.clipboard.writeText(d.host_bkash); btn.textContent = 'copied'; }
+      catch (_) { btn.textContent = d.host_bkash; }
+    };
+  }
+  async function main() {
+    const m = location.pathname.match(/\/s\/([A-Za-z0-9_-]{16,64})/) || location.search.match(/[?&]token=([A-Za-z0-9_-]{16,64})/);
+    if (!m) return show('<div class="msg"><h1>this link does not exist.</h1></div>');
+    try {
+      const res = await fetch(API + '?token=' + encodeURIComponent(m[1]));
+      if (!res.ok) throw new Error(String(res.status));
+      render(await res.json());
+    } catch (_) {
+      show('<div class="msg"><h1>this link does not exist.</h1><p class="sub">ask your friend to send it again.</p></div>');
+    }
+  }
+  main();
+</script>
+</body>
+</html>

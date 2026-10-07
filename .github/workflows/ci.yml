@@ -19,15 +19,18 @@ jobs:
         run: flutter pub get && flutter analyze && flutter test
       - name: design lint
         run: tool/lint_design.sh
-  deno:
+  supabase:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - name: edge function tests
+      - name: edge function tests and type check
         run: |
-          if [ -f supabase/functions/_shared/split_test.ts ]; then
-            deno test --allow-read supabase/functions/_shared/split_test.ts
-          fi
+          deno test --allow-read --config supabase/functions/deno.json supabase/functions/
+          deno check --config supabase/functions/deno.json supabase/functions/*/index.ts
+      - name: migrations, RLS tests and seed (throwaway Postgres)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql > /dev/null
+          supabase/tests/run.sh

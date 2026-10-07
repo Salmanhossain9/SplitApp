@@ -1,0 +1,62 @@
+# Supabase local config. `supabase start` brings up Postgres, Auth, Storage, Inbucket, Edge Functions.
+project_id = "splitup"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "splitup://login-callback"
+additional_redirect_urls = ["splitup://login-callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Email + 6 digit code (OTP). No magic-link deep links needed for login.
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 3600
+
+# Phone and SMS auth are out of scope for v1. Do not enable.
+[auth.sms]
+enable_signup = false
+
+[auth.email.template.magic_link]
+subject = "Your SplitUp code"
+content_path = "./supabase/templates/code.html"
+
+[auth.email.template.confirmation]
+subject = "Your SplitUp code"
+content_path = "./supabase/templates/code.html"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[edge_runtime]
+enabled = true
+
+[functions.share-view]
+verify_jwt = false
+
+[functions.scan-receipt]
+verify_jwt = true
+
+[functions.finalize-bill]
+verify_jwt = true
+
+[functions.send-reminders]
+verify_jwt = true
