@@ -103,7 +103,10 @@ class AvatarChip extends StatelessWidget {
                       left: 0,
                       child: Avatar(
                         name: person.name,
-                        color: avatarColorOf(person.avatarColor),
+                        // A lime avatar would vanish inside its own lime ring.
+                        color: avatarColorOf(person.avatarColor) == AppColors.lime
+                            ? AppColors.lavender
+                            : avatarColorOf(person.avatarColor),
                         size: AppSize.chipWidth,
                         ringColor: AppColors.lime,
                         ringWidth: AppSize.avatarRing,

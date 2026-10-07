@@ -190,6 +190,7 @@ final gallerySections = <GallerySection>[
               caption: 'Tania owes you ৳200. The other ৳69 is paid in cash.',
               onMinus: () {},
               onPlus: () {},
+              onChanged: (_) {},
             ),
           ),
         ],

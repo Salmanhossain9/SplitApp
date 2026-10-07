@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/person.dart';
 import '../theme/tokens.dart';
+import 'amount_field.dart';
 import 'app_icon.dart';
 import 'avatar.dart';
 import 'money.dart';
@@ -27,16 +28,25 @@ class CoverControl {
     required this.caption,
     required this.onMinus,
     required this.onPlus,
+    required this.onChanged,
   });
 
   final int covered;
+  final ValueChanged<int> onChanged;
   final String caption;
   final VoidCallback? onMinus;
   final VoidCallback? onPlus;
 }
 
-class _StepperCircle extends StatelessWidget {
-  const _StepperCircle({required this.icon, required this.onTap});
+/// 32 circle with a white glyph: stepper minus/plus and delete.
+class CircleIconButton extends StatelessWidget {
+  const CircleIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.color = AppColors.lavender,
+  });
+  final Color color;
   final AppIcons icon;
   final VoidCallback? onTap;
 
@@ -49,7 +59,7 @@ class _StepperCircle extends StatelessWidget {
         height: AppDims.stepperCircle,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: onTap == null ? AppColors.slate : AppColors.lavender,
+          color: onTap == null ? AppColors.slate : color,
           shape: BoxShape.circle,
         ),
         child: AppIcon(icon, size: AppDims.chevronGlyph, color: AppColors.white, stroke: 3.4),
@@ -129,13 +139,16 @@ class SettleRow extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text('you cover', style: AppType.body16)),
-                      _StepperCircle(icon: AppIcons.minus, onTap: cover!.onMinus),
-                      SizedBox(
-                        width: AppDims.amountFieldWidth - AppSpacing.s24,
-                        child: Center(child: Money(cover!.covered, style: AppType.heading20)),
+                      Expanded(child: Text('on your tab', style: AppType.body16)),
+                      CircleIconButton(icon: AppIcons.minus, onTap: cover!.onMinus),
+                      const SizedBox(width: AppSpacing.s8),
+                      AmountField(
+                        poisha: cover!.covered,
+                        onChanged: cover!.onChanged,
+                        width: AppDims.amountFieldWidth,
                       ),
-                      _StepperCircle(icon: AppIcons.plus, onTap: cover!.onPlus),
+                      const SizedBox(width: AppSpacing.s8),
+                      CircleIconButton(icon: AppIcons.plus, onTap: cover!.onPlus),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.s8),

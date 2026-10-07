@@ -25,8 +25,10 @@ class _PillNumberField extends StatefulWidget {
     this.height,
     this.prefix,
     this.enabled = true,
+    this.horizontalPadding = 18,
   });
 
+  final double horizontalPadding;
   final int valueUnits;
   final ValueChanged<int> onChanged;
   final String Function(int) toText;
@@ -66,7 +68,7 @@ class _PillNumberFieldState extends State<_PillNumberField> {
       width: widget.width,
       height: widget.height,
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding, vertical: 10),
       decoration: const BoxDecoration(color: AppColors.cream, borderRadius: AppRadius.rFull),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -143,6 +145,7 @@ class RateField extends StatelessWidget {
         fromText: parseRateBp,
         width: AppDims.rateFieldWidth,
         height: AppDims.rateFieldHeight,
+        horizontalPadding: AppSpacing.s8,
       );
 }
 

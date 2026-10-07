@@ -21,3 +21,15 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 ## Tooling
 - No Android SDK in the cloud sandbox: `flutter analyze` and `flutter test` run here, but device checks (camera, ৳ on a real phone, full flow) have to be done on a real Android device.
 - Bill editing after finalize: v1 allows only voiding and re-creating a bill.
+
+## Milestone 3 (core flow, local only)
+- **Hand-written immutable models instead of freezed** for now (`Person`, `DraftBill`). Server models mirroring the tables get added with the backend in milestone 4; freezed + build_runner can replace the hand-written ones then if the boilerplate hurts.
+- **Default VAT and service rate is 5.9% each** (the sample's rate), both editable on screen 9. Real Bangladeshi restaurants often charge 15% VAT and 10% service, but the spec calls 5.9 the default, so that stays until a design says otherwise.
+- **Extras option tiles only show in "by items" mode.** In "equally" mode the whole total is split and in "custom" the typed amounts already contain extras (spec 10.2), so screen 9 shows a one-line note there instead of the tiles.
+- **Changing a rate on screen 9 after typing custom amounts** can break the exact match. The bills banner turns coral and `send bills` stays disabled until the person goes back and fixes the amounts.
+- **Settle model.** Per friend: a method (cash / bKash / bank / owes me) and an `owed` amount (the open tab). Cash, bKash or bank = paid in full. "owes me" starts with the whole share as a tab; the cover control (steps of ৳50, and the amount is also directly editable, because the sample's ৳200 of ৳269 is not reachable in steps of 50) lowers the tab and the remainder counts as paid. The host's own share is excluded from the collection target.
+- `finish bill` needs every friend to have a method. Open tabs stay open after finishing.
+- **Claim-by-items routing:** 5+ participants (host included) use the bottom sheet, which auto-opens on the first unclaimed item and advances to the next one after `done`.
+- **Receipt scan buttons are a stub** (snackbar, switches to manual) until milestone 5. Home is a placeholder until milestone 6. `finish bill` goes home until the done screen lands in milestone 7.
+- **Draft persistence:** `DraftBill` serialises to JSON in `shared_preferences` (debounced 300 ms) and is restored through `DraftBillNotifier.restore()`. Wiring `restore()` into the app start and the "resume draft" prompt happens with the home screen.
+- Avatars that match the lime ring colour are drawn lavender inside avatar chips so the ring stays visible.

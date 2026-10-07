@@ -148,7 +148,10 @@ class AppDims {
       sheetHandleWidth = 40.0,
       sheetHandleHeight = 6.0,
       sheetTopRadius = 40.0,
-      amountFieldWidth = 128.0;
+      amountFieldWidth = 128.0,
+      screenTop = 56.0,
+      splitBarGap = 2.0,
+      coverStep = 5000.0;
   static const groupY = [0.0, 144.0, 204.0];
   static const scrimBlend = 0.55;
 }
