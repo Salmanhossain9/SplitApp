@@ -1,0 +1,11 @@
+name: split_core
+description: Pure Dart split math for SplitUp. All money is integer poisha.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

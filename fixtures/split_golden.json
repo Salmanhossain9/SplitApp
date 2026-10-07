@@ -1,0 +1,48 @@
+{
+  "note": "Shared by packages/split_core (Dart) and supabase/functions/_shared (Deno). All amounts are integer poisha.",
+  "chillox": {
+    "participants": ["you", "rafi", "nabil", "tania"],
+    "items": [
+      { "id": "burger", "name": "Chicken burger", "qty": 1, "unitPrice": 34500 },
+      { "id": "beef", "name": "Beef kala bhuna", "qty": 1, "unitPrice": 114500 },
+      { "id": "fries", "name": "Fries", "qty": 1, "unitPrice": 24000 },
+      { "id": "coke", "name": "Coke", "qty": 3, "unitPrice": 9000 }
+    ],
+    "claims": {
+      "burger": ["you"],
+      "beef": ["rafi", "nabil"],
+      "fries": ["you", "tania"],
+      "coke": ["you", "rafi", "tania"]
+    },
+    "vat": { "rateBp": 590 },
+    "service": { "rateBp": 590 },
+    "expected": {
+      "subtotal": 200000,
+      "vat": 11800,
+      "service": 11800,
+      "total": 223600,
+      "items": { "you": 55500, "rafi": 66250, "nabil": 57250, "tania": 21000 },
+      "itemsEqualExtras": { "you": 61400, "rafi": 72150, "nabil": 63150, "tania": 26900 },
+      "itemsByWeightExtras": { "you": 62049, "rafi": 74067, "nabil": 64006, "tania": 23478 },
+      "equallySplit": { "you": 55900, "rafi": 55900, "nabil": 55900, "tania": 55900 }
+    },
+    "settle": {
+      "hostShare": 61400,
+      "target": 162200,
+      "collected": 142200,
+      "openTab": 20000,
+      "taniaCashPaid": 6900
+    }
+  },
+  "splitEqually": [
+    { "total": 100, "n": 3, "expected": [34, 33, 33] },
+    { "total": 0, "n": 4, "expected": [0, 0, 0, 0] },
+    { "total": 5, "n": 7, "expected": [1, 1, 1, 1, 1, 0, 0] }
+  ],
+  "splitByWeight": [
+    { "total": 100, "weights": [1, 1], "expected": [50, 50] },
+    { "total": 100, "weights": [0, 0, 0], "expected": [34, 33, 33] },
+    { "total": 23600, "weights": [55500, 66250, 57250, 21000], "expected": [6549, 7817, 6756, 2478] },
+    { "total": 1, "weights": [1, 1, 1], "expected": [0, 0, 1] }
+  ]
+}

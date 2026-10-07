@@ -1,0 +1,33 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  dart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: split_core tests
+        working-directory: packages/split_core
+        run: dart pub get && dart analyze && dart test
+      - name: app analyze and tests
+        working-directory: apps/mobile
+        run: flutter pub get && flutter analyze && flutter test
+      - name: design lint
+        run: tool/lint_design.sh
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: edge function tests
+        run: |
+          if [ -f supabase/functions/_shared/split_test.ts ]; then
+            deno test --allow-read supabase/functions/_shared/split_test.ts
+          fi

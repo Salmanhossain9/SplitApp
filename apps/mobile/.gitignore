@@ -44,9 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# SplitUp
-apps/mobile/env.json
-.dart_tool/
-build/
-.flutter-plugins*
-*.iml
+# Widget Preview related
+.widget_preview/
