@@ -206,6 +206,18 @@ final gallerySections = <GallerySection>[
         frontId: 'nsu',
         onTap: (_) {},
       )),
+  GallerySection('recap', () => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: RecapTile(value: Money(223600, style: AppType.title24), label: 'split', background: AppColors.sky)),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(child: RecapTile(value: Text('4', style: AppType.title24.copyWith(fontWeight: AppFonts.bold)), label: 'friends', background: AppColors.lime)),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(child: RecapTile(value: Text('1', style: AppType.title24.copyWith(fontWeight: AppFonts.bold)), label: 'open tab', background: AppColors.white)),
+          ],
+        ),
+      )),
   GallerySection('viewfinder', () => const ReceiptViewfinder()),
 ];
 

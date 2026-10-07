@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import 'app_icon.dart';
 import 'avatar.dart';
 import 'pressable_scale.dart';
+import 'spring_value.dart';
 
 /// Pill that toggles between cream/slate (off) and lavender/white (on) in about 150 ms.
 class NameChip extends StatelessWidget {
@@ -86,50 +87,52 @@ class AvatarChip extends StatelessWidget {
                 style: AppType.micro12,
               ),
               const SizedBox(height: 6),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 380),
-                curve: Curves.easeOutBack,
-                width: AppSize.chipWidth,
-                height: selected ? AppDims.selectedChipHeight : AppSize.chipWidth,
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.lavender : AppColors.clear,
-                  borderRadius: AppRadius.rFull,
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Avatar(
-                        name: person.name,
-                        // A lime avatar would vanish inside its own lime ring.
-                        color: avatarColorOf(person.avatarColor) == AppColors.lime
-                            ? AppColors.lavender
-                            : avatarColorOf(person.avatarColor),
-                        size: AppSize.chipWidth,
-                        ringColor: AppColors.lime,
-                        ringWidth: AppSize.avatarRing,
+              // The pill grows with a spring: it overshoots a little and settles.
+              SpringValue(
+                target: selected ? AppDims.selectedChipHeight : AppSize.chipWidth,
+                builder: (context, height) => Container(
+                  width: AppSize.chipWidth,
+                  height: height.clamp(AppSize.chipWidth, AppDims.selectedChipHeight + AppSpacing.s8),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.lavender : AppColors.clear,
+                    borderRadius: AppRadius.rFull,
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Avatar(
+                          name: person.name,
+                          // A lime avatar would vanish inside its own lime ring.
+                          color: avatarColorOf(person.avatarColor) == AppColors.lime
+                              ? AppColors.lavender
+                              : avatarColorOf(person.avatarColor),
+                          size: AppSize.chipWidth,
+                          ringColor: AppColors.lime,
+                          ringWidth: AppSize.avatarRing,
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: AppSpacing.s4,
-                      left: 0,
-                      right: 0,
-                      child: AnimatedOpacity(
-                        duration: AppMotion.chip,
-                        opacity: selected ? 1 : 0,
-                        child: const Center(
-                          child: AppIcon(
-                            AppIcons.chevronUp,
-                            size: AppDims.chevronGlyph + AppSpacing.s4,
-                            color: AppColors.lime,
-                            stroke: 3.4,
+                      Positioned(
+                        bottom: AppSpacing.s4,
+                        left: 0,
+                        right: 0,
+                        child: AnimatedOpacity(
+                          duration: AppMotion.chip,
+                          opacity: selected ? 1 : 0,
+                          child: const Center(
+                            child: AppIcon(
+                              AppIcons.chevronUp,
+                              size: AppDims.chevronGlyph + AppSpacing.s4,
+                              color: AppColors.lime,
+                              stroke: 3.4,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

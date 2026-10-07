@@ -65,7 +65,7 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
         variant: WideButtonVariant.done,
         enabled: d.allFriendsSettled,
         onPressed: () async {
-          if (await n.finishBill() && context.mounted) context.go('/home');
+          if (await n.finishBill() && context.mounted) context.go('/bill/${d.id}/done');
         },
       ),
       children: [

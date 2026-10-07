@@ -9,6 +9,7 @@ import 'features/auth/profile_screen.dart';
 import 'features/auth/verify_screen.dart';
 import 'features/bill/charges_screen.dart';
 import 'features/bill/claim_screen.dart';
+import 'features/bill/done_screen.dart';
 import 'features/bill/items_screen.dart';
 import 'features/bill/new_bill_screen.dart';
 import 'features/bill/settle_screen.dart';
@@ -84,6 +85,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/bill/:id/claim', builder: (_, _) => const ClaimScreen()),
       GoRoute(path: '/bill/:id/charges', builder: (_, _) => const ChargesScreen()),
       GoRoute(path: '/bill/:id/settle', builder: (_, _) => const SettleScreen()),
+      GoRoute(path: '/bill/:id/done', builder: (_, _) => const DoneScreen()),
       GoRoute(
         path: '/s/:token',
         builder: (_, state) => ShareViewScreen(token: state.pathParameters['token']!),

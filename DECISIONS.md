@@ -72,3 +72,11 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - **Money tab:** open tabs on top, filter chips (all / pending / tabs / settled), bills grouped by month.
 - **Settings:** name, avatar colour, bKash number (shown to friends on the share page), log out (also clears the push token).
 - Demo mode keeps the dashboard honest: the local bill repository records bills as they are sent and settled, and ships two sample bills.
+
+## Milestone 7 (success screen and motion)
+- **Screen 11** (`/bill/:id/done`): lavender, lime check on a 20% white halo that pops in with a real spring (`SpringValue`, `SpringSimulation`), confetti (flat lime/lavender/coral/white pieces from a seeded generator, so it is deterministic), three twinkling sparkles, `all settled.` in celebrate72, recap tiles (sky total, lime friends, white open tabs). "friends" counts everyone on the bill, host included (the sample says "4 friends" for a bill of four people).
+- **The tab pill** reads "Tania's ৳200 is saved on your tab" for one tab and "N tabs worth ৳X are saved on your tab" for several; no tabs, no pill.
+- **Leaving the screen clears the draft** (`back to home`, `split another bill`). A stale link to a bill that is not settled redirects home; a `_leaving` flag stops the clear from tripping that guard (a bug the tests caught: "split another bill" used to land on home).
+- **Avatar chip uses a real spring** now (overshoots about 6 px and settles on the 96 px pill). The group card lift stays a curved animation (`easeOutBack`, 420 ms), which reads the same as a spring there.
+- **Motion checks are automated:** spring overshoot and settle, chip colour halfway through its 150 ms, press scale 0.96, and the avatar pill height.
+- **Figma:** the file could not be opened from the sandbox, so the pass against it was done from the spec's measurements (every size, radius, colour pairing and type token comes from `tokens.dart`). A side by side check against the Figma frames on a real device is still worth doing.
