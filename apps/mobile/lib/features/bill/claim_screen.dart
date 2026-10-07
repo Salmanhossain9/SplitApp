@@ -100,9 +100,28 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
   List<Widget> _itemsBody(DraftBill d, DraftBillNotifier n) {
     final sheetMode = d.participants.length >= sheetClaimThreshold;
     return [
-      ClaimedBanner(
-        text: d.allClaimed ? 'every item is claimed' : '${d.claimedCount} of ${d.items.length} items assigned',
-      ),
+      if (sheetMode)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('who had what?', style: AppType.display36),
+            const SizedBox(height: AppSpacing.s4),
+            Text(
+              '${d.claimedCount} of ${d.items.length} items assigned',
+              style: AppType.micro12.copyWith(color: AppColors.slate),
+            ),
+            const SizedBox(height: AppSpacing.s12),
+            ProgressSplitBar(
+              done: d.claimedCount,
+              pending: d.items.length - d.claimedCount,
+              pendingColor: AppColors.slate.withValues(alpha: AppOpacity.stepNext),
+            ),
+          ],
+        )
+      else
+        ClaimedBanner(
+          text: d.allClaimed ? 'every item is claimed' : '${d.claimedCount} of ${d.items.length} items assigned',
+        ),
       for (final item in d.items)
         ItemCard(
           key: ValueKey(item.id),
@@ -127,18 +146,26 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('total bill', style: AppType.body16),
-            const SizedBox(height: AppSpacing.s4),
-            Money(d.total, style: AppType.amount56, lightDecimals: true),
-            const SizedBox(height: AppSpacing.s12),
-            const AppPill('incl. vat and service', background: AppColors.lavender, foreground: AppColors.white),
+            Row(
+              children: [
+                Expanded(child: Text('total bill', style: AppType.title24)),
+                const AppPill('incl. vat and service', background: AppColors.lime),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            Money(d.total, style: AppType.amount44, lightDecimals: true, fit: true),
           ],
         ),
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('who is sharing?', style: AppType.heading20),
+          Row(
+            children: [
+              Expanded(child: Text('who is sharing?', style: AppType.body16)),
+              AppPill('${sharing.length} ${sharing.length == 1 ? 'person' : 'people'}', background: AppColors.lime),
+            ],
+          ),
           const SizedBox(height: AppSpacing.s12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -164,14 +191,14 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('each pays', style: AppType.body16.copyWith(color: AppColors.white)),
-            const SizedBox(height: AppSpacing.s4),
-            Money(each, style: AppType.amount56, color: AppColors.white, lightDecimals: true),
-            const SizedBox(height: AppSpacing.s4),
-            Text(
-              '${formatTaka(d.total)} / ${sharing.length}',
-              style: AppType.label14.copyWith(color: AppColors.white),
+            Row(
+              children: [
+                Expanded(child: Text('each pays', style: AppType.title24.copyWith(color: AppColors.white))),
+                AppPill('${formatTaka(d.total)} ÷ ${sharing.length}', background: AppColors.lime),
+              ],
             ),
+            const SizedBox(height: AppSpacing.s8),
+            Money(each, style: AppType.amount44, color: AppColors.white, lightDecimals: true, fit: true),
           ],
         ),
       ),
@@ -224,13 +251,13 @@ class _ItemSheet extends ConsumerWidget {
     final parts = claimants.isEmpty ? <int>[] : splitEqually(item.lineTotal, claimants.length);
     final eachText = claimants.isEmpty
         ? 'tap names to share it'
-        : '${claimants.length} ${claimants.length == 1 ? 'person' : 'people'} . ${formatTaka(parts.first)} each';
+        : '${claimants.length} ${claimants.length == 1 ? 'person' : 'people'} · ${formatTaka(parts.first)} each';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(item.qty > 1 ? '${item.name}  x${item.qty}' : item.name, style: AppType.heading20),
+        Text(item.name, style: AppType.body16),
         const SizedBox(height: AppSpacing.s4),
         Money(item.lineTotal, style: AppType.display36),
         const SizedBox(height: AppSpacing.s16),
@@ -253,9 +280,9 @@ class _ItemSheet extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.s16),
-        SplitBar(parts: parts),
+        SplitBar(parts: parts, labelBuilder: (part) => Money(part, style: AppType.body16)),
         const SizedBox(height: AppSpacing.s8),
-        Text(eachText, style: AppType.label14.copyWith(color: AppColors.slate)),
+        Center(child: Text(eachText, style: AppType.micro12.copyWith(color: AppColors.slate))),
         const SizedBox(height: AppSpacing.s24),
         WideButton(
           label: 'done',

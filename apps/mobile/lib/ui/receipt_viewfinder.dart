@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
 
 class ReceiptLine {
-  const ReceiptLine(this.name, this.price);
+  const ReceiptLine(this.name, this.price, {this.highlight = false});
   final String name;
   final String price;
+
+  /// The total row: a lime bar with the amount in bold.
+  final bool highlight;
 }
 
 const _sampleLines = [
@@ -13,6 +16,9 @@ const _sampleLines = [
   ReceiptLine('Beef kala bhuna', '1,145'),
   ReceiptLine('Fries', '240'),
   ReceiptLine('Coke x3', '270'),
+  ReceiptLine('VAT', '118'),
+  ReceiptLine('Service', '118'),
+  ReceiptLine('total', '৳2,236', highlight: true),
 ];
 
 /// Navy frame with lime corner brackets, a paper receipt and a sweeping lavender scan line.
@@ -23,8 +29,8 @@ class ReceiptViewfinder extends StatefulWidget {
     this.scanning = false,
     this.camera,
     this.lines = _sampleLines,
-    this.title = 'Chillox',
-    this.dateLine = '12 Sep . 8:42 pm',
+    this.title = 'CHILLOX',
+    this.dateLine = 'Sep 21 · 9:04 pm',
   });
 
   final bool scanning;
@@ -85,20 +91,31 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Center(child: Text(widget.title, style: AppType.heading20)),
+                        Center(child: Text(widget.title, style: AppType.body16.copyWith(fontWeight: AppFonts.bold))),
                         Center(
                           child: Text(widget.dateLine, style: AppType.micro11.copyWith(color: AppColors.slate)),
                         ),
                         const SizedBox(height: AppSpacing.s12),
                         for (final l in widget.lines)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.s8),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(l.name, style: AppType.micro12, maxLines: 1)),
-                                Text(l.price, style: AppType.micro12),
-                              ],
-                            ),
+                            padding: EdgeInsets.only(bottom: l.highlight ? 0 : AppSpacing.s8),
+                            child: l.highlight
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: AppSpacing.s4),
+                                    decoration: const BoxDecoration(color: AppColors.lime, borderRadius: AppRadius.rFull),
+                                    child: Row(
+                                      children: [
+                                        Expanded(child: Text(l.name, style: AppType.micro12.copyWith(fontWeight: AppFonts.bold))),
+                                        Text(l.price, style: AppType.micro12.copyWith(fontWeight: AppFonts.bold)),
+                                      ],
+                                    ),
+                                  )
+                                : Row(
+                                    children: [
+                                      Expanded(child: Text(l.name, style: AppType.micro12, maxLines: 1)),
+                                      Text(l.price, style: AppType.micro12),
+                                    ],
+                                  ),
                           ),
                       ],
                     ),
@@ -111,29 +128,30 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
               child: CustomPaint(painter: _BracketPainter()),
             ),
           ),
-          if (widget.scanning)
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _scan,
-                builder: (context, _) {
-                  final range = AppDims.viewfinderHeight - AppDims.scanLine - AppSpacing.s48;
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: Transform.translate(
-                      offset: Offset(0, AppSpacing.s24 + range * Curves.easeInOut.transform(_scan.value)),
-                      child: Container(
-                        height: AppDims.scanLine,
-                        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
-                        decoration: const BoxDecoration(
-                          color: AppColors.lavender,
-                          borderRadius: AppRadius.rFull,
-                        ),
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _scan,
+              builder: (context, _) {
+                final range = AppDims.viewfinderHeight - AppDims.scanLine - AppSpacing.s48;
+                // Idle: parked a third of the way down like the design. Scanning: sweeping.
+                final t = widget.scanning ? Curves.easeInOut.transform(_scan.value) : 0.25;
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: Transform.translate(
+                    offset: Offset(0, AppSpacing.s24 + range * t),
+                    child: Container(
+                      height: AppDims.scanLine,
+                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s24),
+                      decoration: const BoxDecoration(
+                        color: AppColors.lavender,
+                        borderRadius: AppRadius.rFull,
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
+          ),
         ],
       ),
     );

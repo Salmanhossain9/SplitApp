@@ -91,3 +91,9 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - **"You are owed" card removed** from home and money for now (the component still exists).
 - Bill rows: smaller amount, and the place name shrinks to fit instead of being cut off. Wide button labels are smaller (body16) and shrink if long.
 - New bill: centered question (smaller), centered restaurant name, "with NSU boys · 3 of 4 here" with the group in lavender, chips without a title, `+ new group` pill, group cards with a members pill, "N here · M away", and a lime chevron on the front card. The scan button is always navy; tapping it too early says what is missing. The "Last out Sep 21 · Chillox" line from the design is not built (needs per-group history).
+
+## Design pass 2 (scan, claim and vat screens)
+- Scan: stepper bar under the top bar, receipt paper with VAT, Service and a lime total row, scan line parked a third of the way down when idle and sweeping while scanning.
+- Claim: every item card shows "×qty" and an "each" line. With 5+ people the screen gets the big "who had what?" headline, an "N of M items assigned" line and a progress bar behind the sheet. The sheet's split bar has rounded segments (sky, coral, lavender, lime) with each person's amount under it.
+- Equally: "incl. vat and service", "N people" and "৳2,236 ÷ 4" are lime pills on the right of the card titles. Custom: avatars with a lime ring. Vat screen: stepper bar, "VAT" and "Service charge" labels, smaller question.
+- Not built: the "+" add-friend button next to the "who is sharing?" chips.

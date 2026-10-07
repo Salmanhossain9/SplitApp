@@ -172,35 +172,50 @@ class _ItemEditCardState extends State<ItemEditCard> {
   }
 }
 
-const _splitBarColors = [AppColors.lavender, AppColors.coral, AppColors.lime, AppColors.sky];
+const _splitBarColors = [AppColors.sky, AppColors.coral, AppColors.lavender, AppColors.lime];
 
-/// One segment per person, proportional to their share (the bottom sheet split bar).
+/// One rounded segment per person, proportional to their share (the bottom sheet split bar),
+/// with an optional amount label centred under each segment.
 class SplitBar extends StatelessWidget {
-  const SplitBar({super.key, required this.parts});
+  const SplitBar({super.key, required this.parts, this.labelBuilder});
   final List<int> parts;
+  final Widget Function(int part)? labelBuilder;
 
   @override
   Widget build(BuildContext context) {
-    final nonZero = parts.where((p) => p > 0).length;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppDims.progressRadius),
-      child: SizedBox(
+    final used = [for (var i = 0; i < parts.length; i++) if (parts[i] > 0) i];
+    Widget row(Widget Function(int i) cell) => Row(
+          children: [
+            for (var k = 0; k < used.length; k++) ...[
+              if (k > 0) const SizedBox(width: AppDims.stepGap),
+              Expanded(flex: parts[used[k]], child: cell(used[k])),
+            ],
+          ],
+        );
+    if (used.isEmpty) {
+      return SizedBox(
         height: AppSize.progressBar,
-        child: nonZero == 0
-            ? const ColoredBox(color: AppColors.white)
-            : Row(
-                children: [
-                  for (var i = 0; i < parts.length; i++)
-                    if (parts[i] > 0) ...[
-                      if (i > 0) const SizedBox(width: AppDims.splitBarGap),
-                      Expanded(
-                        flex: parts[i],
-                        child: ColoredBox(color: _splitBarColors[i % _splitBarColors.length]),
-                      ),
-                    ],
-                ],
-              ),
-      ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(AppDims.progressRadius)),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        SizedBox(
+          height: AppSize.progressBar,
+          child: row((i) => DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _splitBarColors[i % _splitBarColors.length],
+                  borderRadius: BorderRadius.circular(AppDims.progressRadius),
+                ),
+              )),
+        ),
+        if (labelBuilder != null) ...[
+          const SizedBox(height: AppSpacing.s8),
+          row((i) => Center(child: labelBuilder!(parts[i]))),
+        ],
+      ],
     );
   }
 }

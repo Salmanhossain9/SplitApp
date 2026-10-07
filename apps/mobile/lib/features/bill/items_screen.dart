@@ -51,6 +51,8 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
             onBack: () => context.pop(),
           ),
           const SizedBox(height: AppSpacing.s16),
+          const StepperBar(current: 2),
+          const SizedBox(height: AppSpacing.s16),
           TabSwitch(
             selected: _tab,
             onChanged: (t) {

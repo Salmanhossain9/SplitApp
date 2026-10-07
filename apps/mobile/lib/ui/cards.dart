@@ -338,23 +338,24 @@ class ItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  qty > 1 ? '$name  x$qty' : name,
-                  style: AppType.heading20,
+                child: Text.rich(
+                  TextSpan(
+                    text: name,
+                    style: AppType.body16,
+                    children: [TextSpan(text: ' ×$qty', style: AppType.micro12.copyWith(color: AppColors.slate))],
+                  ),
                 ),
               ),
-              Money(lineTotal, style: AppType.heading20),
+              Money(lineTotal, style: AppType.body16),
             ],
           ),
-          if (qty > 1) ...[
-            const SizedBox(height: AppSpacing.s4),
-            Row(
-              children: [
-                Money(lineTotal ~/ qty, style: AppType.label14, color: AppColors.slate),
-                Text(' each', style: AppType.label14.copyWith(color: AppColors.slate)),
-              ],
-            ),
-          ],
+          const SizedBox(height: AppSpacing.s4),
+          Row(
+            children: [
+              Money(lineTotal ~/ qty, style: AppType.micro12, color: AppColors.slate),
+              Text(' each', style: AppType.micro12.copyWith(color: AppColors.slate)),
+            ],
+          ),
           const SizedBox(height: AppSpacing.s12),
           if (onTapCard == null)
             Wrap(
@@ -519,9 +520,18 @@ class CustomRow extends StatelessWidget {
       decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
       child: Row(
         children: [
-          Avatar(name: person.name, color: avatarColorOf(person.avatarColor), size: AppSize.avatarRow),
+          Avatar(
+            name: person.name,
+            // A lime avatar would vanish inside its own lime ring.
+            color: avatarColorOf(person.avatarColor) == AppColors.lime
+                ? AppColors.lavender
+                : avatarColorOf(person.avatarColor),
+            size: AppSize.avatarRow,
+            ringColor: AppColors.lime,
+            ringWidth: AppSize.avatarRingGroup,
+          ),
           const SizedBox(width: AppSpacing.s12),
-          Expanded(child: Text(person.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.heading20)),
+          Expanded(child: Text(person.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.body16)),
           AmountField(poisha: poisha, onChanged: onChanged),
         ],
       ),

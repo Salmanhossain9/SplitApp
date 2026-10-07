@@ -73,7 +73,7 @@ class _PillNumberFieldState extends State<_PillNumberField> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (widget.prefix != null) Text(widget.prefix!, style: style.copyWith(color: AppColors.slate)),
+          if (widget.prefix != null) Text(widget.prefix!, style: style),
           Flexible(
             child: IntrinsicWidth(
               child: ConstrainedBox(

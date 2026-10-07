@@ -55,10 +55,16 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
     }
 
     return ScreenFrame(
-      header: AppTopBar(
-        title: 'vat and service',
-        trailing: const StepPill('final check'),
-        onBack: () => context.pop(),
+      header: Column(
+        children: [
+          AppTopBar(
+            title: 'vat and service',
+            trailing: const StepPill('final check'),
+            onBack: () => context.pop(),
+          ),
+          const SizedBox(height: AppSpacing.s16),
+          const StepperBar(current: 3),
+        ],
       ),
       bottom: WideButton(
         label: 'send bills',
@@ -69,7 +75,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
       ),
       gap: AppSpacing.s24,
       children: [
-        Text('how should we split the extras?', style: AppType.title24),
+        Text('how should we split the extras?', style: AppType.body16),
         if (byItems)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +114,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
               _line('items subtotal', Money(d.subtotal, style: AppType.body16)),
               const SizedBox(height: AppSpacing.s12),
               ChargeRow(
-                label: 'vat',
+                label: 'VAT',
                 rateBp: d.vatRateBp,
                 amount: d.vatAmount,
                 onRateChanged: n.setVatRate,
@@ -116,7 +122,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
               ),
               const SizedBox(height: AppSpacing.s12),
               ChargeRow(
-                label: 'service charge',
+                label: 'Service charge',
                 rateBp: d.serviceRateBp,
                 amount: d.serviceAmount,
                 onRateChanged: n.setServiceRate,
