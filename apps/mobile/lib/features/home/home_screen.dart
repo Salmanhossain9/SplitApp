@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
+import '../auth/auth_providers.dart';
 import '../bill/draft_bill_notifier.dart';
 
 /// Placeholder home until milestone 6 (dashboard, bill list, open tabs).
@@ -26,11 +27,17 @@ class HomeScreen extends ConsumerWidget {
             }),
           ],
         ),
-        if (kDebugMode)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: PillButton(label: 'gallery', onTap: () => context.push('/gallery')),
-          ),
+        Wrap(
+          spacing: AppSpacing.s8,
+          children: [
+            if (kDebugMode) PillButton(label: 'gallery', onTap: () => context.push('/gallery')),
+            PillButton(
+              label: 'log out',
+              background: AppColors.cream,
+              onTap: () => ref.read(authRepositoryProvider).signOut(),
+            ),
+          ],
+        ),
       ],
     );
   }

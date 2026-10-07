@@ -48,6 +48,8 @@ final gallerySections = <GallerySection>[
                 WideButtonVariant.done => 'send bills',
                 WideButtonVariant.home => 'back to home',
                 WideButtonVariant.another => 'split another bill',
+                WideButtonVariant.start => 'split a bill',
+                WideButtonVariant.login => 'log in / sign up',
               },
               variant: v,
               onPressed: () {},

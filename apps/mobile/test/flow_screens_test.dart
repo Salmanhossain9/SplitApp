@@ -29,11 +29,14 @@ Future<ProviderContainer> pumpApp(
   n.addItem(name: 'Fries', qty: 2, unitPrice: 12000);
   n.setItemsConfirmed(true);
 
+  container.listen(routerProvider, (_, _) {}); // The app watches it, so do the tests.
+  final router = container.read(routerProvider);
   await tester.pumpWidget(UncontrolledProviderScope(
     container: container,
-    child: MaterialApp.router(theme: buildAppTheme(), routerConfig: appRouter),
+    child: MaterialApp.router(theme: buildAppTheme(), routerConfig: router),
   ));
-  appRouter.go(route);
+  await tester.pumpAndSettle(); // The (local) session resolves and '/' redirects home.
+  router.go(route);
   await tester.pumpAndSettle();
   return container;
 }
@@ -88,7 +91,7 @@ void main() {
     for (final item in c.read(draftBillProvider).items) {
       n.toggleClaim(item.id, hostId);
     }
-    appRouter.go('/bill/draft/charges');
+    c.read(routerProvider).go('/bill/draft/charges');
     await tester.pumpAndSettle();
     // 345 + 240 = 585 items, 5.9% twice = 69.03 + ... total shown as a banner.
     final total = c.read(draftBillProvider).total;

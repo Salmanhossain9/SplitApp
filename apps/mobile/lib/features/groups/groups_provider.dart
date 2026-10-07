@@ -1,24 +1,37 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/env.dart';
 import '../../core/person.dart';
 import '../../ui/group_stack.dart';
+import '../auth/auth_providers.dart';
+import 'groups_repository.dart';
 
 export '../../ui/group_stack.dart' show GroupCardData;
 
-const _rafi = Person(id: 'f_rafi', name: 'Rafi', avatarColor: 'coral');
-const _nabil = Person(id: 'f_nabil', name: 'Nabil', avatarColor: 'sky');
-const _tania = Person(id: 'f_tania', name: 'Tania', avatarColor: 'lime');
-const _arif = Person(id: 'f_arif', name: 'Arif', avatarColor: 'lavender');
-const _mim = Person(id: 'f_mim', name: 'Mim', avatarColor: 'coral');
+final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
+  if (Env.isConfigured) {
+    return SupabaseGroupsRepository(
+      Supabase.instance.client,
+      () => ref.read(authRepositoryProvider).userId!,
+    );
+  }
+  return LocalGroupsRepository();
+});
 
-/// Saved groups. Local sample data for now; milestone 4 swaps this for the Supabase repository.
-final groupsProvider = NotifierProvider<GroupsNotifier, List<GroupCardData>>(GroupsNotifier.new);
+/// Saved groups for the logged in user.
+final groupsProvider = AsyncNotifierProvider<GroupsNotifier, List<GroupCardData>>(GroupsNotifier.new);
 
-class GroupsNotifier extends Notifier<List<GroupCardData>> {
+class GroupsNotifier extends AsyncNotifier<List<GroupCardData>> {
   @override
-  List<GroupCardData> build() => const [
-        GroupCardData(id: 'g_nsu', name: 'NSU boys', members: [_rafi, _nabil, _tania]),
-        GroupCardData(id: 'g_room', name: 'Roommates', members: [_arif, _nabil]),
-        GroupCardData(id: 'g_office', name: 'Office lunch', members: [_mim, _arif, _rafi, _tania, _nabil]),
-      ];
+  Future<List<GroupCardData>> build() async {
+    if (ref.watch(sessionProvider).value == null) return const [];
+    return ref.read(groupsRepositoryProvider).load();
+  }
+
+  Future<GroupCardData> create(String name, List<Person> members) async {
+    final group = await ref.read(groupsRepositoryProvider).create(name, members);
+    state = AsyncData([...?state.value, group]);
+    return group;
+  }
 }

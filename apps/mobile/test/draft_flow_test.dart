@@ -98,9 +98,9 @@ void main() {
     expect(c.read(draftBillProvider).claimStepValid, isFalse);
   });
 
-  test('settle: Tania covered by a 200 tab, 69 in cash', () {
+  test('settle: Tania covered by a 200 tab, 69 in cash', () async {
     final (c, n, ids) = chillox();
-    expect(n.sendBills(), isTrue);
+    expect((await n.sendBills()).ok, isTrue);
     n.setMethod(ids['rafi']!, SettleMethod.bkash);
     n.setMethod(ids['nabil']!, SettleMethod.cash);
     n.setMethod(ids['tania']!, SettleMethod.owesMe);
@@ -113,15 +113,15 @@ void main() {
     expect(s.openTabs, 20000);
     expect(d.paidBy(ids['tania']!), 6900);
     expect(d.allFriendsSettled, isTrue);
-    expect(n.finishBill(), isTrue);
+    expect(await n.finishBill(), isTrue);
     d = c.read(draftBillProvider);
     expect(d.status, DraftStatus.settled);
     expect(d.entryOf(ids['tania']!).owed, 20000); // The tab stays open.
   });
 
-  test('tab is clamped to the friend\'s share', () {
+  test('tab is clamped to the friend\'s share', () async {
     final (c, n, ids) = chillox();
-    n.sendBills();
+    await n.sendBills();
     n.setMethod(ids['tania']!, SettleMethod.owesMe);
     n.setOwed(ids['tania']!, 99999999);
     expect(c.read(draftBillProvider).entryOf(ids['tania']!).owed, 26900);

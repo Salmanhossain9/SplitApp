@@ -17,8 +17,11 @@ class AppTextField extends StatelessWidget {
     this.keyboardType,
     this.autofocus = false,
     this.textCapitalization = TextCapitalization.sentences,
+    this.background = AppColors.cream,
   });
 
+  /// Cream inside white cards; white when the field sits straight on a cream screen or sheet.
+  final Color background;
   final TextEditingController controller;
   final String? hint;
   final ValueChanged<String>? onChanged;
@@ -30,7 +33,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s12),
-      decoration: const BoxDecoration(color: AppColors.cream, borderRadius: AppRadius.rFull),
+      decoration: BoxDecoration(color: background, borderRadius: AppRadius.rFull),
       child: TextField(
         controller: controller,
         autofocus: autofocus,

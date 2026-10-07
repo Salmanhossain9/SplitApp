@@ -1,5 +1,6 @@
 import 'package:split_core/split_core.dart';
 
+import '../../core/ids.dart';
 import '../../core/person.dart';
 import '../../ui/settle_row.dart' show SettleMethod;
 
@@ -75,7 +76,11 @@ class DraftBill {
     this.itemsConfirmed = false,
     this.status = DraftStatus.draft,
     this.settlements = const {},
+    this.shareUrl,
   });
+
+  /// A new draft with a real UUID, so it can become a `bills` row as is.
+  factory DraftBill.fresh() => DraftBill(id: newUuid());
 
   final String id;
   final String place;
@@ -99,6 +104,9 @@ class DraftBill {
   final bool itemsConfirmed;
   final DraftStatus status;
   final Map<String, SettleEntry> settlements;
+
+  /// The link friends open (set once the bills are sent).
+  final String? shareUrl;
 
   // ---- derived -------------------------------------------------------------
 
@@ -228,6 +236,7 @@ class DraftBill {
     bool? itemsConfirmed,
     DraftStatus? status,
     Map<String, SettleEntry>? settlements,
+    String? shareUrl,
   }) =>
       DraftBill(
         id: id ?? this.id,
@@ -246,6 +255,7 @@ class DraftBill {
         itemsConfirmed: itemsConfirmed ?? this.itemsConfirmed,
         status: status ?? this.status,
         settlements: settlements ?? this.settlements,
+        shareUrl: shareUrl ?? this.shareUrl,
       );
 
   Map<String, dynamic> toJson() => {
@@ -274,6 +284,7 @@ class DraftBill {
         'itemsConfirmed': itemsConfirmed,
         'status': status.name,
         'settlements': {for (final e in settlements.entries) e.key: e.value.toJson()},
+        'shareUrl': shareUrl,
       };
 
   factory DraftBill.fromJson(Map<String, dynamic> j) => DraftBill(

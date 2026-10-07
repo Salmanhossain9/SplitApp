@@ -1,0 +1,215 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../core/env.dart';
+import '../../ui/settle_row.dart' show SettleMethod;
+import 'bill_rows.dart';
+import 'draft_bill.dart';
+
+class FinalizeResult {
+  const FinalizeResult({required this.shareUrl, required this.total});
+  final String shareUrl;
+  final int total;
+}
+
+class BillSyncException implements Exception {
+  const BillSyncException(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
+class HostInfo {
+  const HostInfo({required this.userId, required this.name});
+  final String userId;
+  final String name;
+}
+
+/// Where bills live. Screens never talk to Supabase; they go through the notifier, which goes
+/// through this.
+abstract class BillRepository {
+  /// False in local demo mode: nothing is synced.
+  bool get enabled;
+
+  /// Create or update the draft bill, its people, items, claims and charges.
+  Future<void> saveDraft(DraftBill draft);
+
+  /// Save, then ask the `finalize-bill` function to recompute the shares on the server,
+  /// store them, open the bill and mint the share link.
+  Future<FinalizeResult> finalize(DraftBill draft);
+
+  /// Write one friend's settle row (method, paid, tab).
+  Future<void> saveSettlement(DraftBill draft, String personId);
+
+  Future<void> markSettled(String billId);
+
+  /// Settle rows changing on another device, keyed by person id (milestone 4 realtime).
+  Stream<Map<String, SettleEntry>> watchSettlements(DraftBill draft);
+}
+
+SettleMethod? methodFromDb(String? v) => switch (v) {
+      'cash' => SettleMethod.cash,
+      'bkash' => SettleMethod.bkash,
+      'bank' => SettleMethod.bank,
+      'owes_me' => SettleMethod.owesMe,
+      _ => null,
+    };
+
+String? methodToDb(SettleMethod? m) => switch (m) {
+      SettleMethod.cash => 'cash',
+      SettleMethod.bkash => 'bkash',
+      SettleMethod.bank => 'bank',
+      SettleMethod.owesMe => 'owes_me',
+      null => null,
+    };
+
+/// The settlements row for a friend. `paid + owed` always equals the share, which the
+/// database trigger also enforces.
+Map<String, dynamic> settlementRow(DraftBill d, String personId) {
+  final e = d.entryOf(personId);
+  final share = d.shareOf(personId);
+  if (e.method == null) {
+    return {'method': null, 'paid_amount': 0, 'owed_amount': 0, 'covered_amount': 0};
+  }
+  return {
+    'method': methodToDb(e.method),
+    'paid_amount': share - e.owed,
+    'owed_amount': e.owed,
+    'covered_amount': e.owed,
+  };
+}
+
+class SupabaseBillRepository implements BillRepository {
+  SupabaseBillRepository(this._client, this._host);
+
+  final SupabaseClient _client;
+  final HostInfo? Function() _host;
+
+  @override
+  bool get enabled => true;
+
+  HostInfo _requireHost() {
+    final h = _host();
+    if (h == null) throw const BillSyncException('you are signed out. log in again.');
+    return h;
+  }
+
+  @override
+  Future<void> saveDraft(DraftBill d) async {
+    final host = _requireHost();
+    final rows = draftToRows(d, hostUserId: host.userId, hostName: host.name);
+    try {
+      if (rows.friends.isNotEmpty) await _client.from('friends').upsert(rows.friends);
+      await _client.from('bills').upsert(rows.bill);
+
+      await _client.from('bill_participants').upsert(rows.participants);
+      await _deleteMissing('bill_participants', 'bill_id', d.id, rows.participants.map((r) => r['id'] as String));
+
+      if (rows.items.isNotEmpty) await _client.from('items').upsert(rows.items);
+      await _deleteMissing('items', 'bill_id', d.id, rows.items.map((r) => r['id'] as String));
+
+      final itemIds = rows.items.map((r) => r['id'] as String).toList();
+      if (itemIds.isNotEmpty) await _client.from('claims').delete().inFilter('item_id', itemIds);
+      if (rows.claims.isNotEmpty) await _client.from('claims').insert(rows.claims);
+
+      await _client.from('charges').upsert(rows.charges);
+    } on PostgrestException catch (e) {
+      throw BillSyncException(_friendly(e));
+    }
+  }
+
+  Future<void> _deleteMissing(String table, String column, String billId, Iterable<String> keep) async {
+    final ids = keep.toList();
+    var q = _client.from(table).delete().eq(column, billId);
+    if (ids.isNotEmpty) q = q.not('id', 'in', '(${ids.join(',')})');
+    await q;
+  }
+
+  @override
+  Future<FinalizeResult> finalize(DraftBill d) async {
+    await saveDraft(d);
+    try {
+      final res = await _client.functions.invoke('finalize-bill', body: {'bill_id': d.id});
+      final data = res.data as Map<String, dynamic>;
+      return FinalizeResult(shareUrl: data['share_url'] as String, total: data['total'] as int);
+    } on FunctionException catch (e) {
+      final details = e.details;
+      final message = details is Map && details['error'] is Map ? details['error']['message'] : null;
+      throw BillSyncException(message is String ? message : 'could not send the bills. try again.');
+    }
+  }
+
+  @override
+  Future<void> saveSettlement(DraftBill d, String personId) async {
+    try {
+      await _client
+          .from('settlements')
+          .update(settlementRow(d, personId))
+          .eq('bill_id', d.id)
+          .eq('participant_id', participantIdFor(d.id, personId));
+    } on PostgrestException catch (e) {
+      throw BillSyncException(_friendly(e));
+    }
+  }
+
+  @override
+  Future<void> markSettled(String billId) async {
+    try {
+      await _client.from('bills').update({'status': 'settled'}).eq('id', billId);
+    } on PostgrestException catch (e) {
+      throw BillSyncException(_friendly(e));
+    }
+  }
+
+  @override
+  Stream<Map<String, SettleEntry>> watchSettlements(DraftBill d) {
+    final byParticipant = {for (final p in d.friends) participantIdFor(d.id, p.id): p.id};
+    return _client
+        .from('settlements')
+        .stream(primaryKey: ['bill_id', 'participant_id'])
+        .eq('bill_id', d.id)
+        .map((rows) => {
+              for (final r in rows)
+                if (byParticipant[r['participant_id']] != null)
+                  byParticipant[r['participant_id']]!: SettleEntry(
+                    method: methodFromDb(r['method'] as String?),
+                    owed: (r['owed_amount'] as num).toInt(),
+                  ),
+            });
+  }
+
+  String _friendly(PostgrestException e) {
+    final text = e.message.toLowerCase();
+    if (text.contains('row-level security') || text.contains('permission denied')) {
+      return 'you cannot change this bill.';
+    }
+    if (text.contains('can no longer be edited')) return 'this bill is already sent. void it to change it.';
+    return 'could not save. check your connection and try again.';
+  }
+}
+
+/// Demo mode: nothing leaves the device. "Finalize" only hands back a fake share link.
+class LocalBillRepository implements BillRepository {
+  @override
+  bool get enabled => false;
+
+  @override
+  Future<void> saveDraft(DraftBill draft) async {}
+
+  @override
+  Future<FinalizeResult> finalize(DraftBill draft) async {
+    final token = List.generate(22, (_) => 'abcdefghijklmnopqrstuvwxyz0123456789'[Random().nextInt(36)]).join();
+    return FinalizeResult(shareUrl: '${Env.shareBaseUrl}/s/$token', total: draft.total);
+  }
+
+  @override
+  Future<void> saveSettlement(DraftBill draft, String personId) async {}
+
+  @override
+  Future<void> markSettled(String billId) async {}
+
+  @override
+  Stream<Map<String, SettleEntry>> watchSettlements(DraftBill draft) => const Stream.empty();
+}

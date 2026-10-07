@@ -8,11 +8,35 @@ import '../../ui/ui.dart';
 import 'draft_bill_notifier.dart';
 
 /// Screen 9: vat and service, how extras are split, whose bill is what, send bills.
-class ChargesScreen extends ConsumerWidget {
+class ChargesScreen extends ConsumerStatefulWidget {
   const ChargesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChargesScreen> createState() => _ChargesScreenState();
+}
+
+class _ChargesScreenState extends ConsumerState<ChargesScreen> {
+  bool _sending = false;
+
+  Future<void> _send() async {
+    setState(() => _sending = true);
+    final result = await ref.read(draftBillProvider.notifier).sendBills();
+    if (!mounted) return;
+    setState(() => _sending = false);
+    if (result.ok) {
+      context.pushReplacement('/bill/${ref.read(draftBillProvider).id}/settle');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.coral,
+          content: Text(result.message ?? 'could not send the bills.', style: AppType.body16.copyWith(color: AppColors.white)),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final d = ref.watch(draftBillProvider);
     final n = ref.read(draftBillProvider.notifier);
     final result = d.result;
@@ -36,9 +60,8 @@ class ChargesScreen extends ConsumerWidget {
         label: 'send bills',
         variant: WideButtonVariant.done,
         enabled: result != null,
-        onPressed: () {
-          if (n.sendBills()) context.pushReplacement('/bill/${d.id}/settle');
-        },
+        loading: _sending,
+        onPressed: _send,
       ),
       gap: AppSpacing.s24,
       children: [

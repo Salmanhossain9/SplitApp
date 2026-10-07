@@ -42,6 +42,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
           ),
           const SizedBox(height: AppSpacing.s16),
           AppTextField(
+            background: AppColors.white,
             controller: name,
             hint: 'name',
             autofocus: true,
@@ -49,6 +50,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
           ),
           const SizedBox(height: AppSpacing.s8),
           AppTextField(
+            background: AppColors.white,
             controller: phone,
             hint: 'phone (optional, for WhatsApp reminders)',
             keyboardType: TextInputType.phone,
@@ -70,11 +72,47 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
     phone.dispose();
   }
 
+  Future<void> _saveGroup() async {
+    final name = TextEditingController();
+    await showAppBottomSheet<void>(
+      context: context,
+      builder: (ctx) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('name this group', style: AppType.display36),
+          const SizedBox(height: AppSpacing.s16),
+          AppTextField(
+            background: AppColors.white,
+            controller: name,
+            hint: 'NSU boys',
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: AppSpacing.s16),
+          WideButton(
+            label: 'save group',
+            variant: WideButtonVariant.done,
+            onPressed: () async {
+              if (name.text.trim().isEmpty) return;
+              final friends = ref.read(draftBillProvider).participants.where((p) => !p.isHost).toList();
+              final nav = Navigator.of(ctx);
+              final created = await ref.read(groupsProvider.notifier).create(name.text, friends);
+              ref.read(draftBillProvider.notifier).setGroup(created.id);
+              nav.pop();
+            },
+          ),
+        ],
+      ),
+    );
+    name.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(draftBillProvider);
     final notifier = ref.read(draftBillProvider.notifier);
-    final groups = ref.watch(groupsProvider);
+    final groups = ref.watch(groupsProvider).value ?? const <GroupCardData>[];
     final groupName = groups.where((g) => g.id == draft.groupId).map((g) => g.name).firstOrNull;
     final here = draft.participants.length;
     final canContinue = draft.place.trim().isNotEmpty && here >= 2;
@@ -135,13 +173,25 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('your groups', style: AppType.heading20),
-            const SizedBox(height: AppSpacing.s12),
-            GroupStack(
-              groups: groups,
-              frontId: draft.groupId,
-              onTap: notifier.loadGroup,
+            Row(
+              children: [
+                Expanded(child: Text('your groups', style: AppType.heading20)),
+                if (draft.participants.length >= 2)
+                  LinkButton(label: 'save this group', onTap: _saveGroup),
+              ],
             ),
+            const SizedBox(height: AppSpacing.s12),
+            if (groups.isEmpty)
+              Text(
+                'Add friends above, then save them as a group to start the next bill in one tap.',
+                style: AppType.label14.copyWith(color: AppColors.slate),
+              )
+            else
+              GroupStack(
+                groups: groups,
+                frontId: draft.groupId,
+                onTap: notifier.loadGroup,
+              ),
           ],
         ),
       ],

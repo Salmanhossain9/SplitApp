@@ -4,7 +4,7 @@ import '../theme/tokens.dart';
 import 'app_icon.dart';
 import 'pressable_scale.dart';
 
-enum WideButtonVariant { primary, photo, upload, next, done, home, another }
+enum WideButtonVariant { primary, photo, upload, next, done, home, another, start, login }
 
 class _Look {
   const _Look(this.bg, this.fg, this.circle, this.glyph, this.icon);
@@ -30,6 +30,11 @@ const _looks = {
       _Look(AppColors.lime, AppColors.navy, AppColors.lavender, AppColors.white, AppIcons.home),
   WideButtonVariant.another:
       _Look(AppColors.navy, AppColors.white, AppColors.lime, AppColors.navy, AppIcons.plus),
+  // Landing page: lavender primary and lime secondary, both with a chevron.
+  WideButtonVariant.start:
+      _Look(AppColors.lavender, AppColors.white, AppColors.lime, AppColors.lavender, AppIcons.chevronRight),
+  WideButtonVariant.login:
+      _Look(AppColors.lime, AppColors.navy, AppColors.lavender, AppColors.white, AppIcons.chevronRight),
 };
 
 /// Full width, 64 tall, label left and a 40 circle icon button on the right.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +16,7 @@ Future<void> shot(
   WidgetTester tester,
   String route,
   String name, {
-  void Function(DraftBillNotifier n, Map<String, String> ids)? setup,
+  FutureOr<void> Function(DraftBillNotifier n, Map<String, String> ids)? setup,
   int people = 4,
 }) async {
   SharedPreferences.setMockInitialValues({});
@@ -45,17 +47,20 @@ Future<void> shot(
   claim(1, ['rafi', 'nabil']);
   claim(2, ['you', 'tania']);
   claim(3, ['you', 'rafi', 'tania']);
-  setup?.call(n, ids);
+  await setup?.call(n, ids);
 
+  c.listen(routerProvider, (_, _) {}); // The app watches it, so do the tests.
+  final router = c.read(routerProvider);
   await tester.pumpWidget(UncontrolledProviderScope(
     container: c,
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      routerConfig: appRouter,
+      routerConfig: router,
     ),
   ));
-  appRouter.go(route);
+  await tester.pumpAndSettle();
+  router.go(route);
   await tester.pumpAndSettle();
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/screens/$name.png'));
   await tester.pump(const Duration(milliseconds: 400));
@@ -78,8 +83,8 @@ void main() {
         n.setCustomAmount(ids['rafi']!, 72150);
       }));
   testWidgets('charges', (t) => shot(t, '/bill/draft/charges', 'charges'));
-  testWidgets('settle', (t) => shot(t, '/bill/draft/settle', 'settle', setup: (n, ids) {
-        n.sendBills();
+  testWidgets('settle', (t) => shot(t, '/bill/draft/settle', 'settle', setup: (n, ids) async {
+        await n.sendBills();
         n.setMethod(ids['rafi']!, SettleMethod.bkash);
         n.setMethod(ids['nabil']!, SettleMethod.cash);
         n.setMethod(ids['tania']!, SettleMethod.owesMe);

@@ -9,11 +9,41 @@ import 'draft_bill.dart';
 import 'draft_bill_notifier.dart';
 
 /// Screen 10: tick off how each friend pays you back. Cash, bKash and bank are labels only.
-class SettleScreen extends ConsumerWidget {
+class SettleScreen extends ConsumerStatefulWidget {
   const SettleScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettleScreen> createState() => _SettleScreenState();
+}
+
+class _SettleScreenState extends ConsumerState<SettleScreen> {
+  late final DraftBillNotifier _notifier = ref.read(draftBillProvider.notifier);
+
+  @override
+  void initState() {
+    super.initState();
+    // Stay in sync with settle changes made on another device.
+    _notifier.watchSettlements();
+  }
+
+  @override
+  void dispose() {
+    _notifier.stopWatchingSettlements();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(syncErrorProvider, (_, message) {
+      if (message == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.coral,
+          content: Text(message, style: AppType.body16.copyWith(color: AppColors.white)),
+        ),
+      );
+      ref.read(syncErrorProvider.notifier).clear();
+    });
     final d = ref.watch(draftBillProvider);
     final n = ref.read(draftBillProvider.notifier);
     final summary = d.settleSummary;
@@ -31,8 +61,8 @@ class SettleScreen extends ConsumerWidget {
         label: 'finish bill',
         variant: WideButtonVariant.done,
         enabled: d.allFriendsSettled,
-        onPressed: () {
-          if (n.finishBill()) context.go('/home');
+        onPressed: () async {
+          if (await n.finishBill() && context.mounted) context.go('/home');
         },
       ),
       children: [
