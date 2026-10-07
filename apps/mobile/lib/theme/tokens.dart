@@ -95,6 +95,7 @@ class AppType {
   static final celebrate72 = _t(72, 68, -2.88, AppFonts.bold);
   static final hero50 = _t(50, 50, -2, AppFonts.bold);
   static final amount56 = _t(56, 56, -2.24, AppFonts.bold);
+  static final amount44 = _t(44, 46, -1.76, AppFonts.bold);
   static final display36 = _t(36, 36, -1.44, AppFonts.bold);
   static final title24 = _t(24, 29, -0.48, AppFonts.medium);
   static final wordmark22 = _t(22, 22, -0.66, AppFonts.extraBold);

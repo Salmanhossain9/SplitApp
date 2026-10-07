@@ -122,35 +122,66 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
         trailing: const StepPill('step 1 of 3'),
         onBack: () => context.canPop() ? context.pop() : context.go('/home'),
       ),
+      // Same navy as the tab bar. It stays navy; tapping it too early says what is missing.
       bottom: WideButton(
         label: 'scan receipt',
         variant: WideButtonVariant.primary,
-        enabled: canContinue,
-        onPressed: () => context.push('/bill/${draft.id}/items'),
+        onPressed: () {
+          if (!canContinue) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: AppColors.navy,
+                content: Text(
+                  draft.place.trim().isEmpty ? 'add where you are eating first.' : 'pick at least two people.',
+                  style: AppType.body16.copyWith(color: AppColors.white),
+                ),
+              ),
+            );
+            return;
+          }
+          context.push('/bill/${draft.id}/items');
+        },
       ),
       gap: AppSpacing.s24,
       children: [
+        // Question, restaurant name and who is here, all centered like the design.
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('where are we eating?', style: AppType.title24),
+            Text('where are we eating?', style: AppType.heading20, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.s8),
-            HeadlineField(controller: _place, hint: 'Chillox', onChanged: notifier.setPlace),
+            HeadlineField(
+              controller: _place,
+              hint: 'Chillox',
+              textAlign: TextAlign.center,
+              onChanged: notifier.setPlace,
+            ),
             const SizedBox(height: AppSpacing.s8),
-            Text(
-              '${groupName == null ? '' : 'with $groupName . '}$here of ${draft.people.length} here',
-              style: AppType.label14.copyWith(color: AppColors.slate),
+            Text.rich(
+              TextSpan(
+                style: AppType.label14.copyWith(color: AppColors.slate),
+                children: [
+                  if (groupName != null) ...[
+                    const TextSpan(text: 'with '),
+                    TextSpan(
+                      text: groupName,
+                      style: AppType.label14.copyWith(color: AppColors.lavender, fontWeight: AppFonts.bold),
+                    ),
+                    const TextSpan(text: ' · '),
+                  ],
+                  TextSpan(text: '$here of ${draft.people.length} here'),
+                ],
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('who is here', style: AppType.heading20),
-            const SizedBox(height: AppSpacing.s12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+        LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: box.maxWidth),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   for (final p in draft.people) ...[
@@ -168,7 +199,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                 ],
               ),
             ),
-          ],
+          ),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +208,13 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
               children: [
                 Expanded(child: Text('your groups', style: AppType.heading20)),
                 if (draft.participants.length >= 2)
-                  LinkButton(label: 'save this group', onTap: _saveGroup),
+                  PillButton(
+                    label: 'new group',
+                    onTap: _saveGroup,
+                    background: AppColors.lime,
+                    icon: AppIcons.plus,
+                    iconColor: AppColors.lavender,
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.s12),
@@ -188,7 +225,18 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
               )
             else
               GroupStack(
-                groups: groups,
+                groups: [
+                  for (final g in groups)
+                    // The active group shows who is here and who is away tonight.
+                    GroupCardData(
+                      id: g.id,
+                      name: g.name,
+                      members: g.members,
+                      absentIds: g.id == draft.groupId
+                          ? {for (final m in g.members) if (!draft.presentIds.contains(m.id)) m.id}
+                          : const {},
+                    ),
+                ],
                 frontId: draft.groupId,
                 onTap: notifier.loadGroup,
               ),

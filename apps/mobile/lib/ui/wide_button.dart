@@ -72,11 +72,10 @@ class WideButton extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppType.heading20.copyWith(color: fg),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(label, maxLines: 1, style: AppType.body16.copyWith(color: fg)),
               ),
             ),
             Container(

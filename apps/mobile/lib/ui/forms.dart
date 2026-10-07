@@ -55,7 +55,15 @@ class AppTextField extends StatelessWidget {
 
 /// Big flat headline input: the place name ("Chillox").
 class HeadlineField extends StatelessWidget {
-  const HeadlineField({super.key, required this.controller, required this.hint, this.onChanged});
+  const HeadlineField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.onChanged,
+    this.textAlign = TextAlign.start,
+  });
+
+  final TextAlign textAlign;
 
   final TextEditingController controller;
   final String hint;
@@ -66,6 +74,7 @@ class HeadlineField extends StatelessWidget {
     return TextField(
       controller: controller,
       textCapitalization: TextCapitalization.words,
+      textAlign: textAlign,
       style: AppType.display36,
       cursorColor: AppColors.lavender,
       decoration: InputDecoration(

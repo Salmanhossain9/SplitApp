@@ -56,10 +56,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       reserveBottom: true,
       gap: AppSpacing.s24,
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: Text(greetingFor(now), style: AppType.display36)),
-            NewBillPill(onTap: _newBill),
+            // One line, shrinking if it has to ("good afternoon." is the longest).
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(greetingFor(now), maxLines: 1, style: AppType.display36),
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            Row(
+              children: [
+                Expanded(child: Text('your splits', style: AppType.body16.copyWith(color: AppColors.slate))),
+                NewBillPill(onTap: _newBill),
+              ],
+            ),
           ],
         ),
         if (isResumable(draft))
@@ -86,29 +98,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             settled: d.monthSettled,
             pending: d.monthPending,
           ),
-          if (d.owedToMe > 0)
-            BalanceCard(
-              title: 'you are owed',
-              amount: d.owedToMe,
-              actionLabel: 'see all',
-              onAction: () => StatefulNavigationShell.of(context).goBranch(1),
-            ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Expanded(child: Text(monthNames[list.first.billedAt.month - 1], style: AppType.heading20)),
-                  LinkButton(label: 'see all', onTap: () => StatefulNavigationShell.of(context).goBranch(1)),
+                  PillButton(label: 'see all', onTap: () => StatefulNavigationShell.of(context).goBranch(1)),
                 ],
               ),
-              for (final b in list.take(5)) ...[
+              for (final (i, b) in list.take(5).indexed) ...[
                 const SizedBox(height: AppSpacing.s12),
                 BillRow(
                   name: b.place,
-                  meta: '${formatBillDate(b.billedAt)} . ${b.friendCount} ${b.friendCount == 1 ? 'friend' : 'friends'}',
+                  meta: billMeta(b),
                   amount: b.total,
                   status: b.pill,
+                  avatarColor: const ['lavender', 'lime', 'sky'][i % 3],
                 ),
               ],
             ],

@@ -12,7 +12,8 @@ import 'selectors.dart';
 
 const _cardPadding = EdgeInsets.all(AppSpacing.s16);
 
-/// Two-part progress bar. Lavender = settled, lime = pending.
+/// Two-part progress bar: two separate rounded segments with a gap between them
+/// (lavender = settled, lime = pending), as in the design.
 class ProgressSplitBar extends StatelessWidget {
   const ProgressSplitBar({
     super.key,
@@ -31,19 +32,26 @@ class ProgressSplitBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppDims.progressRadius),
-      child: SizedBox(
-        height: AppSize.progressBar,
-        child: (done + pending) == 0
-            ? ColoredBox(color: trackColor)
-            : Row(
-                children: [
-                  if (done > 0) Expanded(flex: done, child: ColoredBox(color: doneColor)),
-                  if (pending > 0) Expanded(flex: pending, child: ColoredBox(color: pendingColor)),
-                ],
-              ),
-      ),
+    Widget segment(int flex, Color color) => Expanded(
+          flex: flex,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppDims.progressRadius)),
+          ),
+        );
+    return SizedBox(
+      height: AppSize.progressBar,
+      child: (done + pending) == 0
+          ? DecoratedBox(
+              decoration: BoxDecoration(color: trackColor, borderRadius: BorderRadius.circular(AppDims.progressRadius)),
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (done > 0) segment(done, doneColor),
+                if (done > 0 && pending > 0) const SizedBox(width: AppDims.stepGap),
+                if (pending > 0) segment(pending, pendingColor),
+              ],
+            ),
     );
   }
 }
@@ -65,8 +73,8 @@ class _LegendDot extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: AppSpacing.s8),
-        Text('$label ', style: AppType.label14),
         Money(poisha, style: AppType.label14),
+        Text(' $label', style: AppType.label14),
       ],
     );
   }
@@ -100,15 +108,14 @@ class SummaryCard extends StatelessWidget {
         children: [
           Text(label, style: AppType.body16),
           const SizedBox(height: AppSpacing.s8),
-          Money(amount, style: AppType.amount56, lightDecimals: true),
+          Money(amount, style: AppType.amount44, lightDecimals: true, fit: true),
           const SizedBox(height: AppSpacing.s8),
           Text(caption, style: AppType.label14),
           const SizedBox(height: AppSpacing.s16),
           ProgressSplitBar(done: settled, pending: pending),
           const SizedBox(height: AppSpacing.s12),
-          Wrap(
-            spacing: AppSpacing.s16,
-            runSpacing: AppSpacing.s4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _LegendDot(color: AppColors.lavender, label: 'settled', poisha: settled),
               _LegendDot(color: AppColors.lime, label: 'pending', poisha: pending),
@@ -148,7 +155,7 @@ class BalanceCard extends StatelessWidget {
         children: [
           Text(title, style: AppType.title24),
           const SizedBox(height: AppSpacing.s12),
-          Money(amount, style: AppType.amount56, lightDecimals: true),
+          Money(amount, style: AppType.amount44, lightDecimals: true, fit: true),
           const SizedBox(height: AppSpacing.s12),
           Row(
             children: [
@@ -261,7 +268,12 @@ class BillRow extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.heading20),
+                  // The name shrinks to fit instead of being cut off.
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(name, maxLines: 1, style: AppType.heading20),
+                  ),
                   Text(
                     meta,
                     maxLines: 1,
@@ -275,7 +287,7 @@ class BillRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Money(amount, style: AppType.heading20),
+                Money(amount, style: AppType.body16),
                 const SizedBox(height: 2),
                 StatusPill(status),
               ],

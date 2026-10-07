@@ -59,7 +59,6 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
       gap: AppSpacing.s16,
       children: [
         Text('money', style: AppType.display36),
-        if (dash != null && dash.owedToMe > 0) BalanceCard(title: 'you are owed', amount: dash.owedToMe),
         if (dash != null && dash.tabs.isNotEmpty) ...[
           Row(
             children: [
@@ -94,13 +93,14 @@ class _MoneyScreenState extends ConsumerState<MoneyScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(entry.key, style: AppType.heading20),
-                for (final b in entry.value) ...[
+                for (final (i, b) in entry.value.indexed) ...[
                   const SizedBox(height: AppSpacing.s12),
                   BillRow(
                     name: b.place,
-                    meta: '${formatBillDate(b.billedAt)} . ${b.friendCount} ${b.friendCount == 1 ? 'friend' : 'friends'}',
+                    meta: billMeta(b),
                     amount: b.total,
                     status: b.pill,
+                    avatarColor: const ['lavender', 'lime', 'sky'][i % 3],
                   ),
                 ],
               ],

@@ -58,7 +58,8 @@ void main() {
     });
 
     test('bill dates and relative times', () {
-      expect(formatBillDate(DateTime(2026, 9, 12)), '12 Sep');
+      expect(formatBillDate(DateTime(2026, 9, 12)), 'Sep 12');
+      expect(billMeta(bill('x', DateTime(2026, 9, 21), 1)), '4 people · Sep 21');
       expect(timeAgo(now.subtract(const Duration(seconds: 20)), now), 'just now');
       expect(timeAgo(now.subtract(const Duration(minutes: 5)), now), '5m ago');
       expect(timeAgo(now.subtract(const Duration(hours: 3)), now), '3h ago');

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/person.dart';
 import '../theme/tokens.dart';
+import 'app_icon.dart';
 import 'avatar.dart';
+import 'pills.dart';
 import 'pressable_scale.dart';
 
 class GroupCardData {
@@ -104,6 +106,8 @@ class _GroupCard extends StatelessWidget {
           decoration: BoxDecoration(color: bg, borderRadius: AppRadius.rLg),
           // The front layout sits in an OverflowBox so it never overflows while the
           // card is still growing from a back slot; the card clips what is not there yet.
+          // The front layout sits in an OverflowBox so it never overflows while the
+          // card is still growing from a back slot; the card clips what is not there yet.
           child: front
               ? OverflowBox(
                   alignment: Alignment.topLeft,
@@ -112,15 +116,40 @@ class _GroupCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data.name, style: AppType.title24.copyWith(color: fg)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(data.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.title24.copyWith(color: fg)),
+                          ),
+                          _MembersPill(count: data.members.length, card: bg),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.s8),
                       Text(
-                        '${data.members.length} friends . $here here',
+                        '$here here · ${data.members.length - here} away',
                         style: AppType.label14.copyWith(color: fg),
                       ),
                       const Spacer(),
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-                        child: _Members(data: data, ring: bg),
+                        child: Row(
+                          children: [
+                            _Members(data: data, ring: bg),
+                            const Spacer(),
+                            Container(
+                              width: AppDims.actionChevronButton,
+                              height: AppDims.actionChevronButton,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
+                              child: const AppIcon(
+                                AppIcons.chevronRight,
+                                size: AppDims.chevronGlyph,
+                                color: AppColors.lavender,
+                                stroke: 3.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -136,11 +165,28 @@ class _GroupCard extends StatelessWidget {
                         style: AppType.heading20.copyWith(color: fg),
                       ),
                     ),
-                    _Members(data: data, ring: bg),
+                    _MembersPill(count: data.members.length, card: bg),
                   ],
                 ),
         ),
       ),
+    );
+  }
+}
+
+/// "4 members": lime on lavender and coral cards, lavender on the lime card.
+class _MembersPill extends StatelessWidget {
+  const _MembersPill({required this.count, required this.card});
+  final int count;
+  final Color card;
+
+  @override
+  Widget build(BuildContext context) {
+    final onLime = card == AppColors.lime;
+    return AppPill(
+      '$count ${count == 1 ? 'member' : 'members'}',
+      background: onLime ? AppColors.lavender : AppColors.lime,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.s4),
     );
   }
 }

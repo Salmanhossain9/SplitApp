@@ -14,7 +14,11 @@ class Money extends StatelessWidget {
     this.forceDecimals = false,
     this.lightDecimals = false,
     this.textAlign,
+    this.fit = false,
   });
+
+  /// Shrinks the amount to fit its width instead of overflowing (big amounts in cards).
+  final bool fit;
 
   final int poisha;
   final TextStyle style;
@@ -27,7 +31,7 @@ class Money extends StatelessWidget {
   Widget build(BuildContext context) {
     final parts = moneyParts(poisha, forceDecimals: forceDecimals);
     final base = style.copyWith(color: color ?? style.color);
-    return Text.rich(
+    final text = Text.rich(
       TextSpan(
         children: [
           TextSpan(
@@ -45,5 +49,6 @@ class Money extends StatelessWidget {
       ),
       textAlign: textAlign,
     );
+    return fit ? FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: text) : text;
   }
 }

@@ -188,13 +188,16 @@ String greetingFor(DateTime now) {
 
 String formatBillDate(DateTime d) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return '${d.day} ${months[d.month - 1]}';
+  return '${months[d.month - 1]} ${d.day}';
 }
 
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
+
+/// "4 people · Sep 21" (the host counts as one of the people).
+String billMeta(BillSummary b) => '${b.friendCount + 1} people · ${formatBillDate(b.billedAt)}';
 
 /// Where "continue" should take a half-finished bill.
 String resumeLocation(DraftBill d) {
