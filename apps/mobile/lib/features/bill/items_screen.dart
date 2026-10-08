@@ -156,7 +156,8 @@ class _ConfirmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final matches = receiptTotal != null && receiptTotal == ourTotal;
+    // Receipts round to the nearest taka, so a difference under one taka still matches.
+    final matches = receiptTotal != null && (receiptTotal! - ourTotal).abs() < 100;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
       decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),

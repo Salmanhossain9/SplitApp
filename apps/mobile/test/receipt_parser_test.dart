@@ -449,6 +449,82 @@ void main() {
       expect(r.total, 45000);
     });
   });
+
+  group('Rate, Qty, Price table with the name wrapping below (GPR receipt)', () {
+    List<OcrLine> gpr([List<String>? only]) => [
+          for (final (i, t) in (only ?? [
+            'GPR',
+            'Government of Peopls Republic',
+            'Of Bangladesh National Board of',
+            'Central BIN:0026364040101',
+            'Cell: 01850509001',
+            'Guest Bill',
+            'Table: 4',
+            'Order Time: 9/11/2026 12:12:39 AM',
+            'Print Time: 9/11/2026 12:46:40 AM',
+            'WAITER: md mamun',
+            'User Name: gpr',
+            'Order Information',
+            'Item Name Rate Qty Price(Tk.)',
+            'Mutton 320.00 1 320.00',
+            'Khichuri (Half)',
+            'soft drinks 28.57 6 171.42',
+            '(200ml)',
+            'Beef Khichuri 250.00 2 500.00',
+            '(Half)',
+            'PLAIN 80.00 1 80.00',
+            'KHICHURI HALF',
+            'Chicken pulao 250.00 4 1000.00',
+            'Half with jali kabab',
+            'Beef Kala 380.00 2 760.00',
+            'Bhuna (Half)',
+            'water 500ml 19.50 3 58.50',
+            'Chicken sami 50.00 6 300.00',
+            'kabab',
+            'Food Total: 3189.92',
+            'VAT Total(5%): 159.50',
+            'Rounding: -0.42',
+            'Total Amount To Pay: 3349.00',
+            'Thanks For Your Order.',
+            'Developed By: http://giantssoft.com/',
+          ]).indexed)
+            line(t, i),
+        ];
+
+    test('quantity in the middle column, wrapped names joined', () {
+      final r = ReceiptParser.parse(gpr());
+      expect(summary(r), [
+        ['Mutton Khichuri (Half)', 1, 32000],
+        ['soft drinks (200ml)', 6, 2857],
+        ['Beef Khichuri (Half)', 2, 25000],
+        ['Plain Khichuri Half', 1, 8000],
+        ['Chicken pulao Half with jali kabab', 4, 25000],
+        ['Beef Kala Bhuna (Half)', 2, 38000],
+        ['water 500ml', 3, 1950],
+        ['Chicken sami kabab', 6, 5000],
+      ]);
+      expect(r.subtotal, 318992); // The same as the printed Food Total.
+    });
+
+    test('"VAT Total(5%)" is the VAT, and the total is the amount to pay', () {
+      final r = ReceiptParser.parse(gpr());
+      expect(r.vat, 15950);
+      expect(r.service, isNull);
+      expect(r.total, 334900);
+    });
+
+    test('a priced row followed by a heading-like row far from the table is not joined', () {
+      final r = ReceiptParser.parse([
+        line('Item Name Rate Qty Price', 0),
+        line('Tea 20.00 2 40.00', 1),
+        line('Food Total: 40.00', 2),
+        line('Thanks For Your Order.', 3),
+      ]);
+      expect(summary(r), [
+        ['Tea', 2, 2000],
+      ]);
+    });
+  });
 }
 
 extension on OcrLine {

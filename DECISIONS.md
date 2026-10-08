@@ -169,3 +169,14 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - "Total Discount(%)" is a discount row, not the receipt total.
 - When the printed total equals the items, a VAT or service line is only showing how much of the total is
   tax, so the scan sets those rates to zero instead of adding them on top.
+
+## GPR receipt (Item Name, Rate, Qty, Price)
+- "VAT Total(5%)" is VAT. A row that names VAT or tax is VAT even when it also says "Total"; only
+  "total incl. VAT", "with VAT", "to pay" and the like are totals. "Food Total" is the subtotal and
+  "Total Amount To Pay" is the receipt total.
+- A table can print rate, then quantity, then price ("soft drinks 28.57 6 171.42") as well as quantity,
+  rate, amount. Both orders are read, checked by quantity times rate being the amount.
+- In a table with rate, qty and price columns the rest of a long name wraps onto the row below the numbers
+  ("Mutton 320.00 1 320.00" / "Khichuri (Half)") and is joined to the dish above.
+- "does this match your receipt?" says matches when the totals are less than a taka apart, because receipts
+  round to the nearest taka.

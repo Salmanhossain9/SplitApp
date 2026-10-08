@@ -50,10 +50,10 @@ class ReceiptParser {
     caseSensitive: false,
   );
   static final _header = RegExp(r'\b(item|description|particulars|name)\b.*\b(qty|quantity|price|rate|amount|total)\b|\bqty\b.*\b(price|rate|amount)\b|\bname\b.*\bprice\b', caseSensitive: false);
-  static final _subtotal = RegExp(r'sub\s*-?\s*total|total\s*before', caseSensitive: false);
-  static final _total = RegExp(r'\btotal\b|payable|amount\s*due|bill\s*amount|grand|net\s*amount|remaining\s*amount|gross\s*amount', caseSensitive: false);
+  static final _subtotal = RegExp(r'sub\s*-?\s*total|total\s*before|food\s*(total|amount)|sales?\s*total', caseSensitive: false);
+  static final _total = RegExp(r'\btotal\b|payable|amount\s*due|bill\s*amount|grand|net\s*amount|remaining\s*amount|gross\s*amount|to\s*pay', caseSensitive: false);
   static final _notATotal = RegExp(r'\b(items?|qty|quantity|pax|guests?|persons?|covers?)\b', caseSensitive: false);
-  static final _grand = RegExp(r'grand|net|gross|remaining|payable|amount\s*due', caseSensitive: false);
+  static final _grand = RegExp(r'grand|net|gross|remaining|payable|to\s*pay|amount\s*due', caseSensitive: false);
   static final _vat = RegExp(r'\bvat\b|v\.a\.t|\btax\b|\bgst\b|\bcgst\b|\bsgst\b', caseSensitive: false);
   static final _service = RegExp(r'service|\bsvc\b|\bs\.?\s*charge\b|\bsc\b', caseSensitive: false);
   static final _discount = RegExp(r'discount|\bdisc\b|promo|coupon|\boff\b');
@@ -247,6 +247,10 @@ class ReceiptParser {
       row.kind = _Kind.ignored; // "Table: Outdoor_3", "Waiter:Rayhan", "G u e s t B i l l"
     } else if (_discount.hasMatch(l) && !_grand.hasMatch(l)) {
       row.kind = _Kind.adjust; // "Total Discount(%)" is not the total
+    } else if (_vat.hasMatch(l) &&
+        !_grand.hasMatch(l) &&
+        !RegExp(r'\b(incl|including|with|after|plus|pay|payable)\b|\breg|\bbin\b|\bno\b', caseSensitive: false).hasMatch(l)) {
+      row.kind = _Kind.vat; // "VAT Total(5%)" is VAT, not the total
     } else if (_subtotal.hasMatch(l)) {
       row.kind = _Kind.subtotal;
     } else if (_total.hasMatch(l) && _notATotal.hasMatch(l)) {
@@ -306,6 +310,18 @@ class ReceiptParser {
         b.kind = _Kind.merged;
         continue;
       }
+      // "Mutton 320.00 1 320.00" then "Khichuri (Half)": in a table with rate, qty and price columns
+      // the rest of a long name wraps onto the row below the numbers.
+      if (a.kind == _Kind.item &&
+          a.values.length >= 3 &&
+          b.kind == _Kind.text &&
+          b.letters >= 2 &&
+          b.amount == null &&
+          !_ignore.hasMatch(b.label.toLowerCase())) {
+        a.label = '${a.label} ${b.label}';
+        b.kind = _Kind.merged;
+        continue;
+      }
       final aIsNameOnly = a.kind == _Kind.text && a.letters >= 2 && a.amount == null && !_ignore.hasMatch(a.label.toLowerCase());
       final bIsPriceOnly = b.kind == _Kind.text && b.letters < 2 && b.amount != null;
       if (aIsNameOnly && bIsPriceOnly) {
@@ -337,6 +353,15 @@ class ReceiptParser {
         if (!q.decimal && q.poisha % 100 == 0) {
           final k = q.poisha ~/ 100;
           if (k >= 1 && k <= 50 && (k * rate.poisha - total).abs() <= 100) qty = k;
+        }
+        if (qty == 1) {
+          // "Mutton 320.00 1 320.00": rate, then quantity, then amount.
+          final rate2 = values[values.length - 3];
+          final q2 = values[values.length - 2];
+          if (!q2.decimal && q2.poisha % 100 == 0) {
+            final k = q2.poisha ~/ 100;
+            if (k >= 1 && k <= 50 && (k * rate2.poisha - total).abs() <= 100) qty = k;
+          }
         }
       } else if (values.length == 2) {
         final a = values.first, b = values.last;

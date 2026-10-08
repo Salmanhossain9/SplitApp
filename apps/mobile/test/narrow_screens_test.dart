@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
 import 'package:splitup/features/bill/draft_bill.dart' show hostId;
+import 'package:splitup/features/scan/scan_models.dart';
 import 'package:splitup/ui/ui.dart' show RecapTile, SettleRow;
 import 'package:splitup/features/bill/draft_bill_notifier.dart';
 import 'package:splitup/features/groups/groups_provider.dart';
@@ -168,4 +169,18 @@ void main() {
       await finish(tester);
     });
   }
+
+  testWidgets('a scan whose total differs only by rounding says it matches', (tester) async {
+    // GPR receipt: items 3189.92, VAT 159.50, printed total 3349.00 (rounding -0.42).
+    await flow(tester, 390, 844, 1.0, route: '/bill/draft/items', setup: (n, _) {
+      n.applyScan(const ScanResult(
+        items: [ScannedItem(name: 'Everything', qty: 1, unitPrice: 318992)],
+        vat: 15950,
+        total: 334900,
+      ));
+    });
+    expect(find.text('matches'), findsOneWidget);
+    expect(find.text('differs'), findsNothing);
+    await finish(tester);
+  });
 }
