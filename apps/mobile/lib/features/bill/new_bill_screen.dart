@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/person.dart';
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
 import '../groups/groups_provider.dart';
@@ -34,10 +35,24 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
     );
   }
 
+  /// The arrow on the active group: tick who is away tonight. They stay in the group but are
+  /// left out of this bill.
+  Future<void> _whoIsAway(GroupCardData group) {
+    if (ref.read(draftBillProvider).groupId != group.id) {
+      ref.read(draftBillProvider.notifier).loadGroup(group);
+    }
+    return showAppBottomSheet<void>(
+      context: context,
+      builder: (ctx) => _AwaySheet(groupId: group.id),
+    );
+  }
+
   Future<void> _saveGroup() {
+    final taken = [for (final g in ref.read(groupsProvider).value ?? const <GroupCardData>[]) g.name.trim().toLowerCase()];
     return showAppBottomSheet<void>(
       context: context,
       builder: (ctx) => _SaveGroupSheet(
+        taken: taken,
         onSave: (name) async {
           final friends = ref.read(draftBillProvider).participants.where((p) => !p.isHost).toList();
           final created = await ref.read(groupsProvider.notifier).create(name, friends);
@@ -115,30 +130,39 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
           ],
         ),
         LayoutBuilder(
-          builder: (context, box) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: box.maxWidth),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final p in draft.people) ...[
-                    AvatarChip(
-                      person: p,
-                      selected: draft.presentIds.contains(p.id),
-                      onTap: () => notifier.toggleHere(p.id),
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                  ],
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.s24 + AppSpacing.s16),
-                    child: AddFriendButton(onTap: _addGuest),
+          builder: (context, box) {
+            final row = Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final p in draft.people) ...[
+                  AvatarChip(
+                    person: p,
+                    selected: draft.presentIds.contains(p.id),
+                    onTap: () => notifier.toggleHere(p.id),
                   ),
+                  const SizedBox(width: AppSpacing.s8),
                 ],
-              ),
-            ),
-          ),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.s24 + AppSpacing.s16),
+                  child: AddFriendButton(onTap: _addGuest),
+                ),
+              ],
+            );
+            // Up to five friends shrink to fit the screen so none is cut in half; a bigger table
+            // scrolls sideways.
+            if (draft.people.length <= 5) {
+              return FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ConstrainedBox(constraints: BoxConstraints(minWidth: box.maxWidth), child: row),
+              );
+            }
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(constraints: BoxConstraints(minWidth: box.maxWidth), child: row),
+            );
+          },
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,6 +202,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                 ],
                 frontId: draft.groupId,
                 onTap: notifier.loadGroup,
+                onAway: _whoIsAway,
               ),
           ],
         ),
@@ -250,8 +275,11 @@ class _AddGuestSheetState extends State<_AddGuestSheet> {
 }
 
 class _SaveGroupSheet extends StatefulWidget {
-  const _SaveGroupSheet({required this.onSave});
+  const _SaveGroupSheet({required this.onSave, this.taken = const []});
   final Future<void> Function(String name) onSave;
+
+  /// Names (lower case) the person already has a group for.
+  final List<String> taken;
 
   @override
   State<_SaveGroupSheet> createState() => _SaveGroupSheetState();
@@ -259,11 +287,42 @@ class _SaveGroupSheet extends StatefulWidget {
 
 class _SaveGroupSheetState extends State<_SaveGroupSheet> {
   final _name = TextEditingController();
+  bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
     _name.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _name.text.trim();
+    // A second tap while saving must not make a second group.
+    if (name.isEmpty || _busy) {
+      return;
+    }
+    if (widget.taken.contains(name.toLowerCase())) {
+      setState(() => _error = 'you already have a group called $name.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final nav = Navigator.of(context);
+    try {
+      await widget.onSave(name);
+      nav.pop();
+    } catch (e) {
+      debugPrint('group save failed: $e');
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = 'could not save the group. check your connection and try again.';
+        });
+      }
+    }
   }
 
   @override
@@ -280,17 +339,78 @@ class _SaveGroupSheetState extends State<_SaveGroupSheet> {
           hint: 'NSU boys',
           autofocus: true,
           textCapitalization: TextCapitalization.words,
+          onChanged: (_) => setState(() => _error = null),
         ),
+        if (_error != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          ClaimedBanner(text: _error!, variant: BannerVariant.error),
+        ],
         const SizedBox(height: AppSpacing.s16),
         WideButton(
           label: 'save group',
           variant: WideButtonVariant.done,
-          onPressed: () async {
-            if (_name.text.trim().isEmpty) return;
-            final nav = Navigator.of(context);
-            await widget.onSave(_name.text);
-            nav.pop();
-          },
+          loading: _busy,
+          onPressed: _save,
+        ),
+      ],
+    );
+  }
+}
+
+/// "Who is here?" for the active group. Someone away stays in the group but is left out of this
+/// bill: no share, no claims.
+class _AwaySheet extends ConsumerWidget {
+  const _AwaySheet({required this.groupId});
+  final String groupId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final draft = ref.watch(draftBillProvider);
+    final notifier = ref.read(draftBillProvider.notifier);
+    final group = (ref.watch(groupsProvider).value ?? const <GroupCardData>[]).where((g) => g.id == groupId).firstOrNull;
+    final members = group?.members ?? const <Person>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('who is here?', style: AppType.display36),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          'Tap anyone who is away. They stay in the group but are left out of this bill.',
+          style: AppType.label14.copyWith(color: AppColors.slate),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        for (final m in members) ...[
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.s12),
+            decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
+            child: Row(
+              children: [
+                Avatar(
+                  name: m.name,
+                  color: avatarColorOf(m.avatarColor) == AppColors.lime ? AppColors.lavender : avatarColorOf(m.avatarColor),
+                  size: AppSize.avatarRow,
+                  ringColor: AppColors.lime,
+                  ringWidth: AppSize.avatarRingGroup,
+                ),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(child: Text(m.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.body16)),
+                NameChip(
+                  key: ValueKey('away-${m.id}'),
+                  label: draft.presentIds.contains(m.id) ? 'here' : 'away',
+                  on: draft.presentIds.contains(m.id),
+                  onTap: () => notifier.toggleHere(m.id),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+        ],
+        const SizedBox(height: AppSpacing.s8),
+        WideButton(
+          label: 'done',
+          variant: WideButtonVariant.done,
+          onPressed: () => Navigator.pop(context),
         ),
       ],
     );

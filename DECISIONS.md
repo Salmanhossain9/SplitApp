@@ -137,3 +137,18 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - All settled: the confetti is a burst out of the check badge, then a light rain (pills, dots,
   squiggles, stars), about four seconds. A heavy haptic tap lands as the badge pops, the recap tiles
   spring in one after another, and tapping the badge plays it again.
+
+## What broke on the real phone, and why
+- Home screen "could not load your bills": the query embeds `bill_participants` from `bills`, but `shares`
+  and `settlements` also link those two tables, so PostgREST refused it as ambiguous (PGRST201). The
+  query now names the relationship (`bill_participants!bill_participants_bill_id_fkey`).
+  `supabase/tests/postgrest_check.sh` runs the app's queries against a real PostgREST (also in CI).
+- The test phone is about 320 dp wide (a Galaxy with a larger display size), narrower than the 390 and
+  411 dp frames the app was designed on. `test/narrow_screens_test.dart` opens every screen at 320 and
+  360 dp with fonts up to x1.3; `test/phone_fixes_test.dart` covers the specific bugs below.
+- Bottom sheets scroll when their content is taller than the screen (the "bills sent" sheet overflowed by
+  about 194 dp). The 2 x N bill card grid no longer uses IntrinsicHeight, which made the cards tall.
+- Add items: the price drops to its own line when it cannot fit beside the stepper.
+- Who is here: up to five chips shrink to fit; more scroll.
+- Groups: the active group has a tick and says "active"; its arrow opens "who is here?" to mark friends
+  away for this bill. Saving a group ignores a second tap and refuses a name already in use.

@@ -114,11 +114,24 @@ class SummaryCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.s16),
           ProgressSplitBar(done: settled, pending: pending),
           const SizedBox(height: AppSpacing.s12),
+          // Each side shrinks to fit when the amounts are long or the screen is narrow.
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _LegendDot(color: AppColors.lavender, label: 'settled', poisha: settled),
-              _LegendDot(color: AppColors.lime, label: 'pending', poisha: pending),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: _LegendDot(color: AppColors.lavender, label: 'settled', poisha: settled),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.s12),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: _LegendDot(color: AppColors.lime, label: 'pending', poisha: pending),
+                ),
+              ),
             ],
           ),
         ],
@@ -256,7 +269,7 @@ class BillRow extends StatelessWidget {
     return PressableScale(
       onTap: onTap,
       child: Container(
-        height: AppDims.billRowHeight,
+        constraints: const BoxConstraints(minHeight: AppDims.billRowHeight),
         padding: _cardPadding,
         decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
         child: Row(
@@ -592,15 +605,16 @@ class BillCardGrid extends StatelessWidget {
     for (var i = 0; i < cards.length; i += 2) {
       if (rows.isNotEmpty) rows.add(const SizedBox(height: AppSpacing.s12));
       rows.add(
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: cards[i]),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(child: i + 1 < cards.length ? cards[i + 1] : const SizedBox.shrink()),
-            ],
-          ),
+        // Not IntrinsicHeight: asking the cards' shrink-to-fit numbers for an intrinsic height at a
+        // narrow width makes every word wrap, and the cards came out several times too tall. Every
+        // card has the same lines, so they are the same height anyway.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: cards[i]),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(child: i + 1 < cards.length ? cards[i + 1] : const SizedBox.shrink()),
+          ],
         ),
       );
     }

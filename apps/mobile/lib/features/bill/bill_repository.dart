@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:split_core/split_core.dart' show formatTaka;
@@ -223,8 +224,10 @@ class SupabaseBillRepository implements BillRepository {
     try {
       final rows = await _client
           .from('bills')
+          // The hint matters: shares and settlements also join bills to bill_participants, so
+          // without it PostgREST refuses the query (PGRST201) and the home screen never loads.
           .select('id, place, total, status, billed_at, '
-              'bill_participants(id, name, is_host, user_id), '
+              'bill_participants!bill_participants_bill_id_fkey(id, name, is_host, user_id), '
               'shares(participant_id, total), '
               'settlements(participant_id, method, paid_amount, owed_amount, last_reminded_at)')
           .eq('created_by', host.userId)
@@ -233,6 +236,7 @@ class SupabaseBillRepository implements BillRepository {
           .limit(200);
       return [for (final r in rows) BillSummary.fromRow(r)];
     } on PostgrestException catch (e) {
+      debugPrint('listBills failed: $e');
       throw BillSyncException(_friendly(e));
     }
   }

@@ -1,0 +1,133 @@
+[
+ {
+  "id": "b1000000-0000-0000-0000-000000000001",
+  "place": "Chillox",
+  "total": 223600,
+  "status": "settled",
+  "billed_at": "2026-10-05T10:03:06.997204+00:00",
+  "bill_participants": [
+   {
+    "id": "a1000000-0000-0000-0000-000000000001",
+    "name": "Demo",
+    "is_host": true,
+    "user_id": "00000000-0000-0000-0000-0000000d3e30"
+   },
+   {
+    "id": "a1000000-0000-0000-0000-000000000002",
+    "name": "Rafi",
+    "is_host": false,
+    "user_id": null
+   },
+   {
+    "id": "a1000000-0000-0000-0000-000000000003",
+    "name": "Nabil",
+    "is_host": false,
+    "user_id": null
+   },
+   {
+    "id": "a1000000-0000-0000-0000-000000000004",
+    "name": "Tania",
+    "is_host": false,
+    "user_id": null
+   }
+  ],
+  "shares": [
+   {
+    "total": 61400,
+    "participant_id": "a1000000-0000-0000-0000-000000000001"
+   },
+   {
+    "total": 72150,
+    "participant_id": "a1000000-0000-0000-0000-000000000002"
+   },
+   {
+    "total": 63150,
+    "participant_id": "a1000000-0000-0000-0000-000000000003"
+   },
+   {
+    "total": 26900,
+    "participant_id": "a1000000-0000-0000-0000-000000000004"
+   }
+  ],
+  "settlements": [
+   {
+    "method": "bkash",
+    "owed_amount": 0,
+    "paid_amount": 72150,
+    "participant_id": "a1000000-0000-0000-0000-000000000002",
+    "last_reminded_at": null
+   },
+   {
+    "method": "cash",
+    "owed_amount": 0,
+    "paid_amount": 63150,
+    "participant_id": "a1000000-0000-0000-0000-000000000003",
+    "last_reminded_at": null
+   },
+   {
+    "method": "owes_me",
+    "owed_amount": 20000,
+    "paid_amount": 6900,
+    "participant_id": "a1000000-0000-0000-0000-000000000004",
+    "last_reminded_at": null
+   }
+  ]
+ },
+ {
+  "id": "b1000000-0000-0000-0000-000000000002",
+  "place": "Pizza Roma",
+  "total": 150000,
+  "status": "settled",
+  "billed_at": "2026-09-29T10:03:06.997204+00:00",
+  "bill_participants": [
+   {
+    "id": "a2000000-0000-0000-0000-000000000001",
+    "name": "Demo",
+    "is_host": true,
+    "user_id": "00000000-0000-0000-0000-0000000d3e30"
+   },
+   {
+    "id": "a2000000-0000-0000-0000-000000000002",
+    "name": "Rafi",
+    "is_host": false,
+    "user_id": null
+   },
+   {
+    "id": "a2000000-0000-0000-0000-000000000003",
+    "name": "Nabil",
+    "is_host": false,
+    "user_id": null
+   }
+  ],
+  "shares": [
+   {
+    "total": 50000,
+    "participant_id": "a2000000-0000-0000-0000-000000000001"
+   },
+   {
+    "total": 50000,
+    "participant_id": "a2000000-0000-0000-0000-000000000002"
+   },
+   {
+    "total": 50000,
+    "participant_id": "a2000000-0000-0000-0000-000000000003"
+   }
+  ],
+  "settlements": [
+   {
+    "method": "cash",
+    "owed_amount": 0,
+    "paid_amount": 50000,
+    "participant_id": "a2000000-0000-0000-0000-000000000002",
+    "last_reminded_at": null
+   },
+   {
+    "method": "cash",
+    "owed_amount": 0,
+    "paid_amount": 50000,
+    "participant_id": "a2000000-0000-0000-0000-000000000003",
+    "last_reminded_at": null
+   }
+  ]
+ }
+]

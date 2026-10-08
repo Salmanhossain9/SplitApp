@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -23,7 +24,12 @@ class BillsNotifier extends AsyncNotifier<List<BillSummary>> {
   @override
   Future<List<BillSummary>> build() async {
     if (ref.watch(sessionProvider).value == null) return const [];
-    return ref.read(billRepositoryProvider).listBills();
+    try {
+      return await ref.read(billRepositoryProvider).listBills();
+    } catch (e) {
+      debugPrint('could not load bills: $e'); // The home screen only says "could not load".
+      rethrow;
+    }
   }
 }
 

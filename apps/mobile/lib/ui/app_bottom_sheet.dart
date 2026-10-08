@@ -49,7 +49,9 @@ class AppSheetFrame extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.s16),
-          child,
+          // Taller than the screen (small phone, large font, a long list): the sheet scrolls
+          // instead of overflowing.
+          Flexible(child: SingleChildScrollView(child: child)),
         ],
       ),
     );

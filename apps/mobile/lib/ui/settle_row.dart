@@ -127,17 +127,26 @@ class SettleRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.s12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (final m in SettleMethod.values)
-                NameChip(
-                  label: m.label,
-                  on: method == m,
-                  horizontalPadding: AppSpacing.s12,
-                  onTap: () => onMethod(m),
+          // The four chips shrink together on a narrow phone instead of running off the card.
+          LayoutBuilder(
+            builder: (context, box) => FittedBox(
+              fit: BoxFit.scaleDown,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: box.maxWidth),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (final m in SettleMethod.values)
+                      NameChip(
+                        label: m.label,
+                        on: method == m,
+                        horizontalPadding: AppSpacing.s12,
+                        onTap: () => onMethod(m),
+                      ),
+                  ],
                 ),
-            ],
+              ),
+            ),
           ),
           if (cover != null) ...[
             const SizedBox(height: AppSpacing.s12),

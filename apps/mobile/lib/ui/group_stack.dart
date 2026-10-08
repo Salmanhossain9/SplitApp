@@ -34,6 +34,7 @@ class GroupStack extends StatelessWidget {
     required this.groups,
     required this.frontId,
     required this.onTap,
+    this.onAway,
   });
 
   final List<GroupCardData> groups;
@@ -41,6 +42,9 @@ class GroupStack extends StatelessWidget {
   /// The group currently in front. The rest keep their relative order behind it.
   final String? frontId;
   final ValueChanged<GroupCardData> onTap;
+
+  /// The arrow on the front card: pick who is away tonight.
+  final ValueChanged<GroupCardData>? onAway;
 
   List<GroupCardData> get _ordered {
     final shown = groups.take(3).toList();
@@ -64,7 +68,9 @@ class GroupStack extends StatelessWidget {
               key: ValueKey(g.id),
               data: g,
               slot: byId[g.id]!,
+              active: g.id == frontId,
               onTap: () => onTap(g),
+              onAway: onAway == null ? null : () => onAway!(g),
             ),
         ],
       ),
@@ -73,11 +79,22 @@ class GroupStack extends StatelessWidget {
 }
 
 class _GroupCard extends StatelessWidget {
-  const _GroupCard({super.key, required this.data, required this.slot, required this.onTap});
+  const _GroupCard({
+    super.key,
+    required this.data,
+    required this.slot,
+    required this.active,
+    required this.onTap,
+    this.onAway,
+  });
 
   final GroupCardData data;
   final int slot;
+
+  /// This is the group the bill is being split with.
+  final bool active;
   final VoidCallback onTap;
+  final VoidCallback? onAway;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +135,18 @@ class _GroupCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          if (active) ...[
+                            // The tick: this is the group the next bill is split with.
+                            Container(
+                              key: const ValueKey('active-group'),
+                              width: AppDims.activeTick,
+                              height: AppDims.activeTick,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
+                              child: const AppIcon(AppIcons.check, size: AppDims.chevronGlyph, color: AppColors.lavender, stroke: 3.4),
+                            ),
+                            const SizedBox(width: AppSpacing.s8),
+                          ],
                           Expanded(
                             child: Text(data.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppType.title24.copyWith(color: fg)),
                           ),
@@ -126,7 +155,7 @@ class _GroupCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.s8),
                       Text(
-                        '$here here · ${data.members.length - here} away',
+                        '${active ? 'active · ' : ''}$here here · ${data.members.length - here} away',
                         style: AppType.label14.copyWith(color: fg),
                       ),
                       const Spacer(),
@@ -136,16 +165,20 @@ class _GroupCard extends StatelessWidget {
                           children: [
                             _Members(data: data, ring: bg),
                             const Spacer(),
-                            Container(
-                              width: AppDims.actionChevronButton,
-                              height: AppDims.actionChevronButton,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
-                              child: const AppIcon(
-                                AppIcons.chevronRight,
-                                size: AppDims.chevronGlyph,
-                                color: AppColors.lavender,
-                                stroke: 3.2,
+                            PressableScale(
+                              onTap: onAway,
+                              child: Container(
+                                key: const ValueKey('group-away'),
+                                width: AppDims.actionChevronButton,
+                                height: AppDims.actionChevronButton,
+                                alignment: Alignment.center,
+                                decoration: const BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
+                                child: const AppIcon(
+                                  AppIcons.chevronRight,
+                                  size: AppDims.chevronGlyph,
+                                  color: AppColors.lavender,
+                                  stroke: 3.2,
+                                ),
                               ),
                             ),
                           ],

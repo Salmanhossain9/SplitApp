@@ -139,35 +139,68 @@ class _ItemEditCardState extends State<ItemEditCard> {
             ],
           ),
           const SizedBox(height: AppSpacing.s12),
-          Row(
-            children: [
-              CircleIconButton(
-                icon: AppIcons.minus,
-                onTap: widget.qty > 1 ? () => widget.onQty(widget.qty - 1) : null,
-              ),
-              SizedBox(
-                width: AppSize.avatarRow,
-                child: Center(child: Text('${widget.qty}', style: AppType.heading20)),
-              ),
-              CircleIconButton(icon: AppIcons.plus, onTap: () => widget.onQty(widget.qty + 1)),
-              const SizedBox(width: AppSpacing.s8),
-              Text('each ', style: AppType.label14.copyWith(color: AppColors.slate)),
-              // Takes what is left on narrow phones instead of overflowing.
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: AppDims.amountFieldWidth),
-                    child: AmountField(
-                      poisha: widget.unitPrice,
-                      onChanged: widget.onUnitPrice,
-                      width: double.infinity,
-                    ),
-                  ),
+          LayoutBuilder(builder: (context, box) {
+            final stepper = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleIconButton(
+                  icon: AppIcons.minus,
+                  onTap: widget.qty > 1 ? () => widget.onQty(widget.qty - 1) : null,
                 ),
-              ),
-            ],
-          ),
+                SizedBox(
+                  width: AppSize.avatarRow,
+                  child: Center(child: Text('${widget.qty}', style: AppType.heading20)),
+                ),
+                CircleIconButton(icon: AppIcons.plus, onTap: () => widget.onQty(widget.qty + 1)),
+              ],
+            );
+            final each = Text('each ', style: AppType.label14.copyWith(color: AppColors.slate));
+            // Measured with the person's own font size: with a larger system font the price does not
+            // fit beside the stepper, so it drops to a line of its own instead of being cut off.
+            final eachPainter = TextPainter(
+              text: TextSpan(text: 'each ', style: AppType.label14),
+              textDirection: TextDirection.ltr,
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout();
+            final stepperWidth = AppDims.stepperCircle * 2 + AppSize.avatarRow;
+            final needed = stepperWidth + AppSpacing.s8 + eachPainter.width + AppSpacing.s8 + AppDims.amountFieldWidth;
+            if (box.maxWidth >= needed) {
+              return Row(
+                children: [
+                  stepper,
+                  const SizedBox(width: AppSpacing.s8),
+                  each,
+                  const Spacer(),
+                  AmountField(poisha: widget.unitPrice, onChanged: widget.onUnitPrice),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                Align(alignment: Alignment.centerLeft, child: stepper),
+                const SizedBox(height: AppSpacing.s8),
+                Row(
+                  children: [
+                    each,
+                    const SizedBox(width: AppSpacing.s8),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: AppDims.amountFieldWidth * 1.5),
+                          child: AmountField(
+                            poisha: widget.unitPrice,
+                            onChanged: widget.onUnitPrice,
+                            width: double.infinity,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }),
           if (widget.qty > 1)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.s8),

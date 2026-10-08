@@ -73,79 +73,77 @@ class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('bills sent.', style: AppType.display36),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            'Friends do not need the app. The link shows each of them their share.',
-            style: AppType.label14.copyWith(color: AppColors.slate),
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          if (result != null)
-            ClipRRect(
-              borderRadius: AppRadius.rLg,
-              child: RepaintBoundary(
-                key: _imageKey,
-                child: ShareImageCard(
-                  place: d.place,
-                  total: d.total,
-                  cards: [
-                    for (var i = 0; i < result.shares.length; i++)
-                      BillCard(
-                        person: d.participants[i],
-                        index: i,
-                        total: result.shares[i].total,
-                        itemsAmount: result.shares[i].itemsAmount,
-                        extrasAmount: result.shares[i].extrasAmount,
-                      ),
-                  ],
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('bills sent.', style: AppType.display36),
+        const SizedBox(height: AppSpacing.s4),
+        Text(
+          'Friends do not need the app. The link shows each of them their share.',
+          style: AppType.label14.copyWith(color: AppColors.slate),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        if (result != null)
+          ClipRRect(
+            borderRadius: AppRadius.rLg,
+            child: RepaintBoundary(
+              key: _imageKey,
+              child: ShareImageCard(
+                place: d.place,
+                total: d.total,
+                cards: [
+                  for (var i = 0; i < result.shares.length; i++)
+                    BillCard(
+                      person: d.participants[i],
+                      index: i,
+                      total: result.shares[i].total,
+                      itemsAmount: result.shares[i].itemsAmount,
+                      extrasAmount: result.shares[i].extrasAmount,
+                    ),
+                ],
               ),
             ),
-          const SizedBox(height: AppSpacing.s16),
-          Wrap(
-            spacing: AppSpacing.s8,
-            runSpacing: AppSpacing.s8,
-            children: [
-              PillButton(
-                label: 'send link',
-                background: AppColors.lavender,
-                icon: AppIcons.arrowUpRight,
-                iconColor: AppColors.lime,
-                onTap: () => run(() => share.shareText(text)),
-              ),
-              PillButton(
-                label: 'whatsapp',
-                onTap: () => run(() async {
-                  if (!await share.openWhatsapp(text)) throw StateError('whatsapp');
-                }),
-              ),
-              PillButton(
-                label: 'share as image',
-                background: AppColors.white,
-                onTap: () => run(() async {
-                  final png = await capturePng(_imageKey);
-                  await share.shareImage(png, text: text, fileName: 'splitup-${d.place.trim().toLowerCase()}.png');
-                }),
-              ),
-            ],
           ),
-          if (_message != null) ...[
-            const SizedBox(height: AppSpacing.s12),
-            ClaimedBanner(text: _message!, variant: BannerVariant.error),
+        const SizedBox(height: AppSpacing.s16),
+        Wrap(
+          spacing: AppSpacing.s8,
+          runSpacing: AppSpacing.s8,
+          children: [
+            PillButton(
+              label: 'send link',
+              background: AppColors.lavender,
+              icon: AppIcons.arrowUpRight,
+              iconColor: AppColors.lime,
+              onTap: () => run(() => share.shareText(text)),
+            ),
+            PillButton(
+              label: 'whatsapp',
+              onTap: () => run(() async {
+                if (!await share.openWhatsapp(text)) throw StateError('whatsapp');
+              }),
+            ),
+            PillButton(
+              label: 'share as image',
+              background: AppColors.white,
+              onTap: () => run(() async {
+                final png = await capturePng(_imageKey);
+                await share.shareImage(png, text: text, fileName: 'splitup-${d.place.trim().toLowerCase()}.png');
+              }),
+            ),
           ],
-          const SizedBox(height: AppSpacing.s24),
-          WideButton(
-            label: 'settle up',
-            variant: WideButtonVariant.next,
-            onPressed: () => Navigator.pop(context),
-          ),
+        ),
+        if (_message != null) ...[
+          const SizedBox(height: AppSpacing.s12),
+          ClaimedBanner(text: _message!, variant: BannerVariant.error),
         ],
-      ),
+        const SizedBox(height: AppSpacing.s24),
+        WideButton(
+          label: 'settle up',
+          variant: WideButtonVariant.next,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
     );
   }
 }

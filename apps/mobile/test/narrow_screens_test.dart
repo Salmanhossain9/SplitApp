@@ -1,0 +1,142 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:split_core/split_core.dart';
+import 'package:splitup/features/bill/draft_bill.dart' show hostId;
+import 'package:splitup/features/bill/draft_bill_notifier.dart';
+import 'package:splitup/features/groups/groups_provider.dart';
+import 'package:splitup/features/groups/groups_repository.dart';
+import 'package:splitup/router.dart';
+import 'package:splitup/theme/app_theme.dart';
+import 'package:splitup/ui/settle_row.dart' show SettleMethod;
+
+/// Every screen of the bill flow on small phones: 320 dp is a Galaxy with a larger display size.
+/// Nothing may overflow, whatever the font size.
+const sizes = [(320.0, 640.0, 1.0), (320.0, 640.0, 1.3), (360.0, 740.0, 1.15)];
+
+Future<ProviderContainer> flow(WidgetTester tester, double w, double h, double scale, {required String route, void Function(DraftBillNotifier n, Map<String, String> ids)? setup}) async {
+  SharedPreferences.setMockInitialValues({});
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = Size(w, h);
+  addTearDown(tester.view.reset);
+  final c = ProviderContainer(overrides: [
+    groupsRepositoryProvider.overrideWithValue(LocalGroupsRepository(initial: const [])),
+  ]);
+  addTearDown(c.dispose);
+  final n = c.read(draftBillProvider.notifier);
+  n.setPlace('Chocolate Brownie Rustic Cafe');
+  final ids = <String, String>{'you': hostId};
+  for (final name in ['Adnan', 'Siwom', 'Hasanuzzaman', 'Karim']) {
+    ids[name.toLowerCase()] = n.addGuest(name).id;
+  }
+  n.addItem(name: 'Sakura Water 330 ml', qty: 2, unitPrice: 1500);
+  n.addItem(name: 'Chocolate Brownie Cream Regular', unitPrice: 49900);
+  n.addItem(name: 'Caramel Banana French Toast', unitPrice: 59900);
+  n.addItem(name: 'Tiramisu', unitPrice: 36900);
+  n.setItemsConfirmed(true);
+  final items = c.read(draftBillProvider).items;
+  void claim(int i, List<String> who) {
+    for (final p in who) {
+      n.toggleClaim(items[i].id, ids[p]!);
+    }
+  }
+
+  claim(0, ['you', 'adnan']);
+  claim(1, ['siwom']);
+  claim(2, ['hasanuzzaman', 'karim']);
+  claim(3, ['you', 'adnan', 'siwom', 'hasanuzzaman', 'karim']);
+  n.setVatRate(500);
+  n.setServiceRate(500);
+  setup?.call(n, ids);
+  c.listen(routerProvider, (_, _) {});
+  final router = c.read(routerProvider);
+  await tester.pumpWidget(UncontrolledProviderScope(
+    container: c,
+    child: MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
+      builder: (context, app) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(scale)),
+        child: app!,
+      ),
+      routerConfig: router,
+    ),
+  ));
+  await tester.pump(const Duration(milliseconds: 200));
+  router.go(route);
+  for (var i = 0; i < 12; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  return c;
+}
+
+Future<void> finish(WidgetTester tester) async {
+  expect(tester.takeException(), isNull);
+  await tester.pump(const Duration(milliseconds: 5000)); // Let confetti and timers end.
+}
+
+void main() {
+  for (final (w, h, scale) in sizes) {
+    final tag = '$w x $h, font x$scale';
+    for (final entry in {
+      'home': '/home',
+      'money': '/money',
+      'notifications': '/notifications',
+      'settings': '/settings',
+      'new bill': '/bill/new',
+      'items (manual)': '/bill/draft/items',
+      'claim by items': '/bill/draft/claim',
+      'charges': '/bill/draft/charges',
+    }.entries) {
+      testWidgets('${entry.key}, $tag', (tester) async {
+        await flow(tester, w, h, scale, route: entry.value);
+        await finish(tester);
+      });
+    }
+    testWidgets('claim equally, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/claim', setup: (n, _) => n.setSplitMode(SplitMode.equally));
+      await finish(tester);
+    });
+    testWidgets('claim custom, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/claim', setup: (n, ids) {
+        n.setSplitMode(SplitMode.custom);
+        n.setCustomAmount(ids['you']!, 61400);
+      });
+      await finish(tester);
+    });
+    testWidgets('charges separate, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/charges', setup: (n, _) => n.setExtrasMode(ExtrasMode.byItems));
+      await finish(tester);
+    });
+    testWidgets('claim sheet with 6 people, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/claim', setup: (n, _) {
+        n.addGuest('Rafi');
+        n.addGuest('Nabil');
+      });
+      await finish(tester);
+    });
+    testWidgets('settle, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/settle', setup: (n, ids) async {
+        await n.sendBills();
+        n.setMethod(ids['adnan']!, SettleMethod.bkash);
+        n.setMethod(ids['siwom']!, SettleMethod.cash);
+        n.setMethod(ids['hasanuzzaman']!, SettleMethod.owesMe);
+        n.setOwed(ids['hasanuzzaman']!, 20000);
+      });
+      await finish(tester);
+    });
+    testWidgets('all settled, $tag', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/done', setup: (n, ids) async {
+        await n.sendBills();
+        n.setMethod(ids['adnan']!, SettleMethod.bkash);
+        n.setMethod(ids['siwom']!, SettleMethod.cash);
+        n.setMethod(ids['hasanuzzaman']!, SettleMethod.owesMe);
+        n.setOwed(ids['hasanuzzaman']!, 20000);
+        n.setMethod(ids['karim']!, SettleMethod.cash);
+        await n.finishBill();
+      });
+      await finish(tester);
+    });
+  }
+}

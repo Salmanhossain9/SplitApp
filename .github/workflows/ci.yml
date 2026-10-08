@@ -34,3 +34,8 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq postgresql > /dev/null
           supabase/tests/run.sh
+      - name: the app's queries against a real PostgREST
+        run: |
+          curl -sSL -o /tmp/postgrest.tar.xz https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz
+          tar -xJf /tmp/postgrest.tar.xz -C /tmp
+          POSTGREST=/tmp/postgrest supabase/tests/postgrest_check.sh

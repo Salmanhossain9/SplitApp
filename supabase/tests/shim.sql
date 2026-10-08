@@ -11,7 +11,10 @@ create table auth.users (
   created_at timestamptz, updated_at timestamptz
 );
 create function auth.uid() returns uuid language sql stable as
-$$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+$$ select coalesce(
+     nullif(current_setting('request.jwt.claim.sub', true), ''),
+     nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'
+   )::uuid $$;
 
 create publication supabase_realtime;
 
