@@ -51,6 +51,9 @@ A release build is shrunk differently from the `flutter run` one, so check a sca
   That is normal for an app that is not on the Play Store.
 - On first open they allow the camera (for scanning) and notifications.
 
+## If the release build fails on "Missing classes detected while running R8"
+The ML Kit rules in `android/app/proguard-rules.pro` fix it. Pull the latest code, run `flutter clean`, and build again.
+
 ## What your friends need to know
 - They sign in with their email and a 6 digit code. The code email comes from your Gmail sender, so it can
   land in spam the first time.
