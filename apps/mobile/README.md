@@ -1,4 +1,4 @@
-# splitup
+# Splitbit
 
 A new Flutter project.
 

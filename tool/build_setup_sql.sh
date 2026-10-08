@@ -7,7 +7,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 out="$root/supabase/setup_all.sql"
 tmp="$(mktemp)"
 {
-  echo "-- SplitUp database setup. Paste this whole file into the Supabase SQL editor and run it ONCE"
+  echo "-- Splitbit database setup. Paste this whole file into the Supabase SQL editor and run it ONCE"
   echo "-- on a new project. It is generated from supabase/migrations by tool/build_setup_sql.sh."
   for f in "$root"/supabase/migrations/*.sql; do
     echo

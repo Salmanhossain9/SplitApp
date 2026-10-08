@@ -104,7 +104,7 @@ class AppTopBar extends StatelessWidget {
   }
 }
 
-/// 28 mark (lavender + lime half circles) and the wordmark.
+/// The Splitbit mark (the brand image, transparent) and the wordmark.
 class Logo extends StatelessWidget {
   const Logo({super.key});
 
@@ -113,25 +113,10 @@ class Logo extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CustomPaint(
-          size: const Size.square(AppDims.logoMark),
-          painter: _LogoMarkPainter(),
-        ),
+        Image.asset('assets/brand/splitbit_mark.png', height: AppDims.logoMark, fit: BoxFit.contain),
         const SizedBox(width: AppSpacing.s8),
-        Text('splitup', style: AppType.wordmark22),
+        Text('splitbit', style: AppType.wordmark22),
       ],
     );
   }
-}
-
-class _LogoMarkPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    canvas.drawArc(rect, 1.5708, 3.14159, true, Paint()..color = AppColors.lavender);
-    canvas.drawArc(rect, -1.5708, 3.14159, true, Paint()..color = AppColors.lime);
-  }
-
-  @override
-  bool shouldRepaint(_LogoMarkPainter old) => false;
 }

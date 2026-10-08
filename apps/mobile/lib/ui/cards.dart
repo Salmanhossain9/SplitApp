@@ -108,7 +108,7 @@ class SummaryCard extends StatelessWidget {
         children: [
           Text(label, style: AppType.body16),
           const SizedBox(height: AppSpacing.s8),
-          Money(amount, style: AppType.amount44, lightDecimals: true, fit: true),
+          Money(amount, style: AppType.display36, lightDecimals: true, fit: true),
           const SizedBox(height: AppSpacing.s8),
           Text(caption, style: AppType.label14),
           const SizedBox(height: AppSpacing.s16),
@@ -582,12 +582,16 @@ class TabCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label ?? '$name owes you', style: AppType.label14.copyWith(color: AppColors.white)),
-                Money(amount, style: AppType.title24, color: AppColors.white),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(label ?? '$name owes you', maxLines: 1, style: AppType.label14.copyWith(color: AppColors.white)),
+                ),
+                Money(amount, style: AppType.heading20, color: AppColors.white, fit: true),
               ],
             ),
           ),
-          PillButton(label: 'remind', onTap: onRemind),
+          PillButton(label: 'remind', onTap: onRemind, compact: true),
         ],
       ),
     );

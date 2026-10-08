@@ -321,7 +321,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(share.images.length, 1);
       final (png, name) = share.images.single;
-      expect(name, 'splitup-chillox.png');
+      expect(name, 'splitbit-chillox.png');
       expect(png.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47]); // PNG signature
       await tester.pump(const Duration(milliseconds: 400));
     });

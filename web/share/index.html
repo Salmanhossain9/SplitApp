@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>your bill . splitup</title>
+  <title>your bill . splitbit</title>
+  <link rel="icon" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
@@ -21,8 +22,7 @@
     }
     main { max-width: 440px; margin: 0 auto; padding: 32px 24px 56px; display: grid; gap: 16px; }
     .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; display: flex; align-items: center; gap: 8px; }
-    .mark { width: 28px; height: 28px; border-radius: 50%; background: var(--lavender); position: relative; overflow: hidden; }
-    .mark::after { content: ''; position: absolute; right: 0; top: 0; width: 50%; height: 100%; background: var(--lime); }
+    .mark { height: 34px; width: auto; display: block; }
     h1 { font-size: 36px; line-height: 1; letter-spacing: -0.04em; margin: 8px 0 0; font-weight: 700; }
     .sub { color: var(--slate); font-size: 14px; margin: 0; }
     .card { border-radius: 28px; padding: 24px; }
@@ -51,7 +51,7 @@
   </style>
 </head>
 <body>
-<main id="app"><div class="logo"><span class="mark"></span>splitup</div><p class="sub">loading your bill...</p></main>
+<main id="app"><div class="logo"><img class="mark" src="logo.png" alt="">splitbit</div><p class="sub">loading your bill...</p></main>
 <script src="config.js"></script>
 <script>
   // The share-view function URL comes from config.js (edit that file once, see SUPABASE_SETUP.md).
@@ -69,7 +69,7 @@
     return '৳' + s + (frac ? '<small>.' + String(frac).padStart(2, '0') + '</small>' : '');
   }
   function show(html) {
-    document.getElementById('app').innerHTML = '<div class="logo"><span class="mark"></span>splitup</div>' + html;
+    document.getElementById('app').innerHTML = '<div class="logo"><img class="mark" src="logo.png" alt="">splitbit</div>' + html;
   }
   function render(d) {
     const date = new Date(d.billed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -91,7 +91,7 @@
       <section class="card total"><p class="label">total bill</p><p class="amount">${big(d.total)}</p></section>
       ${people}
       ${bkash}
-      <p class="foot">made with splitup. scan, claim, settle.</p>`);
+      <p class="foot">made with splitbit. scan, claim, settle.</p>`);
     const btn = document.getElementById('copy');
     if (btn) btn.onclick = async () => {
       try { await navigator.clipboard.writeText(d.host_bkash); btn.textContent = 'copied'; }

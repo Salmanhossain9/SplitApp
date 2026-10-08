@@ -31,11 +31,11 @@ otp_expiry = 3600
 enable_signup = false
 
 [auth.email.template.magic_link]
-subject = "Your SplitUp code"
+subject = "Your Splitbit code"
 content_path = "./supabase/templates/code.html"
 
 [auth.email.template.confirmation]
-subject = "Your SplitUp code"
+subject = "Your Splitbit code"
 content_path = "./supabase/templates/code.html"
 
 [inbucket]

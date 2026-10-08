@@ -70,6 +70,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/brand/splitbit_mark.png
 
   fonts:
     - family: PlusJakartaSans

@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
 import 'package:splitup/features/bill/draft_bill.dart' show hostId;
 import 'package:splitup/features/scan/scan_models.dart';
-import 'package:splitup/ui/ui.dart' show RecapTile, SettleRow;
+import 'package:splitup/ui/cards.dart' show TabCard;
+import 'package:splitup/ui/code_field.dart';
+import 'package:splitup/ui/ui.dart' show RecapTile, SettleRow, Logo;
 import 'package:splitup/features/bill/draft_bill_notifier.dart';
 import 'package:splitup/features/groups/groups_provider.dart';
 import 'package:splitup/features/groups/groups_repository.dart';
@@ -190,4 +192,59 @@ void main() {
     expect(find.text('differs'), findsNothing);
     await finish(tester);
   });
+
+  for (final (w, scale) in [(320.0, 1.0), (320.0, 1.3), (411.0, 1.0)]) {
+    testWidgets('the code boxes are six separate, modest boxes at $w dp, font x$scale', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = Size(w, 640);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        theme: buildAppTheme(),
+        builder: (c, app) => MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: TextScaler.linear(scale)), child: app!),
+        home: Scaffold(body: Padding(padding: const EdgeInsets.all(24), child: CodeField(onChanged: (_) {}))),
+      ));
+      await tester.pump(const Duration(milliseconds: 300));
+      final boxes = [
+        for (final e in tester.widgetList<AnimatedContainer>(find.byType(AnimatedContainer)))
+          tester.getRect(find.byWidget(e)),
+      ];
+      expect(boxes.length, 6);
+      for (var i = 0; i < 6; i++) {
+        expect(boxes[i].width, lessThanOrEqualTo(52.5), reason: 'box $i is too wide');
+        expect(boxes[i].height, lessThanOrEqualTo(64));
+        expect(boxes[i].left, greaterThanOrEqualTo(0));
+        expect(boxes[i].right, lessThanOrEqualTo(w));
+        if (i > 0) expect(boxes[i].left - boxes[i - 1].right, greaterThanOrEqualTo(4), reason: 'boxes $i and ${i - 1} touch');
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('the logo is the Splitbit mark and name', (tester) async {
+    await tester.pumpWidget(MaterialApp(theme: buildAppTheme(), home: const Scaffold(body: Center(child: Logo()))));
+    expect(find.text('splitbit'), findsOneWidget);
+    expect(find.text('splitup'), findsNothing);
+    expect(find.byType(Image), findsOneWidget);
+  });
+
+  for (final (w, scale) in [(320.0, 1.0), (320.0, 1.3)]) {
+    testWidgets('home with a big total and an open tab, $w dp, font x$scale', (tester) async {
+      await flow(tester, w, 760, scale, route: '/home', setup: (n, ids) async {
+        n.setItemsConfirmed(true);
+        await n.sendBills();
+        n.setMethod(ids['adnan']!, SettleMethod.owesMe);
+        n.setOwed(ids['adnan']!, 106330);
+      });
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(TabCard), findsOneWidget);
+      // The tab's amount is one line, and the remind button is small.
+      final tab = tester.getRect(find.byType(TabCard));
+      final remind = tester.getRect(find.text('remind'));
+      expect(remind.height, lessThan(24), reason: 'the remind text is on one line');
+      final owes = tester.getSize(find.textContaining('owes you').first).height;
+      expect(owes, lessThan(24), reason: 'the tab label wrapped');
+      expect(tab.height, lessThan(130), reason: 'the tab card is too tall');
+      await finish(tester);
+    });
+  }
 }

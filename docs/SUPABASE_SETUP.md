@@ -1,4 +1,4 @@
-# Connect SplitUp to Supabase (step by step)
+# Connect Splitbit to Supabase (step by step)
 
 Takes about 30 minutes, all on free plans. You need: a Supabase account, a free Netlify account
 (to host the share page), and this repo cloned on your computer.
@@ -48,13 +48,13 @@ This also turns on the security rules (Row Level Security), so each person only 
    - Google Account → Security: turn on 2-Step Verification, then open
      https://myaccount.google.com/apppasswords and create an app password (16 letters).
    - Supabase **Authentication → Emails → SMTP Settings** (or the "Set up SMTP" button): enable,
-     sender email = your Gmail, sender name `SplitUp`, host `smtp.gmail.com`, port `465`,
+     sender email = your Gmail, sender name `Splitbit`, host `smtp.gmail.com`, port `465`,
      username = your Gmail, password = the app password.
    - Gmail is fine for testing and small groups. For many users use Brevo (free, 300/day) or
      Resend (free, needs your own domain) on the same screen.
 3. **Authentication → Emails → Templates**. Edit **both** *Magic link* and *Confirm sign up*
    (use the **Source** tab):
-   - Subject: `Your SplitUp code`
+   - Subject: `Your Splitbit code`
    - Body: paste the contents of `supabase/templates/code.html` (it shows `{{ .Token }}`, the 6 digit code).
    Save each one. A new email address gets *Confirm sign up*, a returning one gets *Magic link*.
 
@@ -90,7 +90,7 @@ Share links now look like `https://something.netlify.app/s/<token>`.
 cd apps/mobile
 flutter run --dart-define-from-file=env.json
 ```
-In VS Code you can press **F5** and pick **SplitUp (connected to Supabase)**.
+In VS Code you can press **F5** and pick **Splitbit (connected to Supabase)**.
 The Settings tab says "connected to your Supabase project" when it worked.
 
 ## 8. Check it end to end

@@ -44,27 +44,36 @@ class _CodeFieldState extends State<CodeField> {
       onTap: () => _focus.requestFocus(),
       child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var i = 0; i < widget.length; i++)
-                AnimatedContainer(
-                  duration: AppMotion.chip,
-                  width: AppSize.avatarChip - AppSpacing.s8,
-                  height: AppSize.avatarChip + AppSpacing.s8,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: i < text.length
-                        ? AppColors.lavender
-                        : (i == text.length && _focus.hasFocus ? AppColors.lime : AppColors.white),
-                    borderRadius: AppRadius.rMd,
-                  ),
-                  child: Text(
-                    i < text.length ? text[i] : '',
-                    style: AppType.display36.copyWith(color: AppColors.white),
-                  ),
-                ),
-            ],
+          // Six separate boxes with a gap, as wide as fits (never wider than codeBoxMax).
+          LayoutBuilder(
+            builder: (context, box) {
+              const gap = AppSpacing.s8;
+              final width = ((box.maxWidth - gap * (widget.length - 1)) / widget.length).clamp(0.0, AppDims.codeBoxMax);
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 0; i < widget.length; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    AnimatedContainer(
+                      duration: AppMotion.chip,
+                      width: width,
+                      height: AppDims.codeBoxHeight,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i < text.length
+                            ? AppColors.lavender
+                            : (i == text.length && _focus.hasFocus ? AppColors.lime : AppColors.white),
+                        borderRadius: AppRadius.rMd,
+                      ),
+                      child: Text(
+                        i < text.length ? text[i] : '',
+                        style: AppType.title24.copyWith(color: AppColors.white, fontWeight: AppFonts.bold),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           Positioned.fill(
             child: Opacity(

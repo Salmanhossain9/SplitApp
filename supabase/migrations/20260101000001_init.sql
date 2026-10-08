@@ -1,4 +1,4 @@
--- SplitUp schema. All money columns are bigint integer poisha (1 taka = 100 poisha).
+-- Splitbit schema. All money columns are bigint integer poisha (1 taka = 100 poisha).
 -- Never numeric or float.
 
 create extension if not exists pgcrypto;

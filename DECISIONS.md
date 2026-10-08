@@ -180,3 +180,14 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   ("Mutton 320.00 1 320.00" / "Khichuri (Half)") and is joined to the dish above.
 - "does this match your receipt?" says matches when the totals are less than a taka apart, because receipts
   round to the nearest taka.
+
+## Splitbit
+- The app is now called Splitbit (wordmark lowercase, "splitbit"). Changed everywhere a person sees it: launcher
+  name (Android and iOS), the in-app logo, the share page and picture, email subject and template, docs.
+  Not changed, on purpose: the Android application id and Dart package (`splitup`, changing them would stop
+  installed copies updating), the `splitup://` deep link scheme, the demo seed email, and the keystore alias.
+- The icon comes from `apps/mobile/assets/brand/splitbit_icon_source.png`. `tool/make_brand_assets.py` builds the
+  transparent in-app mark, the Android launcher icons (adaptive and legacy), the splash logo, the iOS icon set
+  and the share page logo. Run it again if the image changes.
+- Code boxes on the login screen are six separate boxes, at most 52 wide, sized to the screen.
+- Home: the month total is smaller, and the tab card shows its label and amount on one line with a small remind button.

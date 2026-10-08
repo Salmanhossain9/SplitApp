@@ -82,8 +82,11 @@ class PillButton extends StatelessWidget {
     this.iconColor,
     this.padding = const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: 10),
     this.trailingIcon = false,
+    this.compact = false,
   });
 
+  /// A smaller button (the remind pill on a tab card).
+  final bool compact;
   final String label;
   final VoidCallback? onTap;
   final Color background;
@@ -104,7 +107,7 @@ class PillButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(color: background, borderRadius: AppRadius.rFull),
         child: Padding(
-          padding: padding,
+          padding: compact ? const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s8) : padding,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -112,7 +115,7 @@ class PillButton extends StatelessWidget {
                 _IconDot(background: iconBackground, child: glyph),
                 const SizedBox(width: AppSpacing.s8),
               ],
-              Text(label, style: AppType.label14.copyWith(color: fg)),
+              Text(label, style: (compact ? AppType.micro12 : AppType.label14).copyWith(color: fg)),
               if (glyph != null && trailingIcon) ...[
                 const SizedBox(width: AppSpacing.s8),
                 glyph,

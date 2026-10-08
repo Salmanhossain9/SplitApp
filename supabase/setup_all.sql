@@ -1,10 +1,10 @@
--- SplitUp database setup. Paste this whole file into the Supabase SQL editor and run it ONCE
+-- Splitbit database setup. Paste this whole file into the Supabase SQL editor and run it ONCE
 -- on a new project. It is generated from supabase/migrations by tool/build_setup_sql.sh.
 
 -- ======================================================================
 -- 20260101000001_init.sql
 -- ======================================================================
--- SplitUp schema. All money columns are bigint integer poisha (1 taka = 100 poisha).
+-- Splitbit schema. All money columns are bigint integer poisha (1 taka = 100 poisha).
 -- Never numeric or float.
 
 create extension if not exists pgcrypto;

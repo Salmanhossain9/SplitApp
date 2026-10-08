@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "SplitUp (connected to Supabase)",
+      "name": "Splitbit (connected to Supabase)",
       "request": "launch",
       "type": "dart",
       "cwd": "apps/mobile",
@@ -11,7 +11,7 @@
       "args": ["--dart-define-from-file=env.json"]
     },
     {
-      "name": "SplitUp (offline mode)",
+      "name": "Splitbit (offline mode)",
       "request": "launch",
       "type": "dart",
       "cwd": "apps/mobile",

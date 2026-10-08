@@ -1,4 +1,4 @@
-# splitup
+# Splitbit
 
 Bill splitting for friend groups in Bangladesh. Scan the receipt, tap who had what, split VAT and
 service fairly, and track who has paid (cash, bKash, bank). Friends without the app see their share

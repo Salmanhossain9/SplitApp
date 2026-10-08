@@ -21,14 +21,14 @@ Future<void> main() async {
     // Push is optional: it needs Firebase config and says nothing if that is missing.
     if (Env.firebaseEnabled && await initFirebase()) installFirebasePushFactory(firebasePushService);
   }
-  runApp(const ProviderScope(child: SplitUpApp()));
+  runApp(const ProviderScope(child: SplitbitApp()));
 }
 
 /// Lets the app show a snackbar from anywhere (sync problems), whatever screen is open.
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-class SplitUpApp extends ConsumerWidget {
-  const SplitUpApp({super.key});
+class SplitbitApp extends ConsumerWidget {
+  const SplitbitApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,7 +50,7 @@ class SplitUpApp extends ConsumerWidget {
     });
     return MaterialApp.router(
       scaffoldMessengerKey: messengerKey,
-      title: 'splitup',
+      title: 'Splitbit',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       routerConfig: ref.watch(routerProvider),

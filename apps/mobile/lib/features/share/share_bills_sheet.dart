@@ -128,7 +128,7 @@ class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
               background: AppColors.white,
               onTap: () => run(() async {
                 final png = await capturePng(_imageKey);
-                await share.shareImage(png, text: text, fileName: 'splitup-${d.place.trim().toLowerCase()}.png');
+                await share.shareImage(png, text: text, fileName: 'splitbit-${d.place.trim().toLowerCase()}.png');
               }),
             ),
           ],

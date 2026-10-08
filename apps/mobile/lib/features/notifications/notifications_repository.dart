@@ -42,7 +42,7 @@ class AppNotification {
       'remind' => ('a friendly nudge', 'You still owe $host${owed == null ? '' : ' ${formatTaka(owed)}'} for $place.'),
       'bill_shared' => ('$host split $place', 'Open it to see your share.'),
       'tab_paid' => ('tab paid', '${payload['name'] ?? 'Someone'} paid their tab for $place.'),
-      _ => ('splitup', place),
+      _ => ('splitbit', place),
     };
   }
 }
