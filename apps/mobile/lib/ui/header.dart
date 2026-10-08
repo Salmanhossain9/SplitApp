@@ -70,6 +70,27 @@ class AppTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (trailing != null) {
+      // The title cannot be centred on the screen when a pill sits on the right: it takes the
+      // space between the back button and the pill and shrinks before it would be covered.
+      return SizedBox(
+        height: AppSize.topBar,
+        child: Row(
+          children: [
+            if (showBack) AppBackButton(onTap: onBack),
+            Expanded(
+              child: title == null
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+                      child: FittedBox(fit: BoxFit.scaleDown, child: Text(title!, style: AppType.heading20)),
+                    ),
+            ),
+            trailing!,
+          ],
+        ),
+      );
+    }
     return SizedBox(
       height: AppSize.topBar,
       child: Stack(
@@ -77,7 +98,6 @@ class AppTopBar extends StatelessWidget {
         children: [
           if (title != null) Center(child: Text(title!, style: AppType.heading20)),
           if (showBack) Align(alignment: Alignment.centerLeft, child: AppBackButton(onTap: onBack)),
-          if (trailing != null) Align(alignment: Alignment.centerRight, child: trailing),
         ],
       ),
     );

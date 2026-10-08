@@ -289,6 +289,79 @@ void main() {
       expect([r.vat, r.service, r.total], [null, null, null]);
     });
   });
+
+  group('wrapped names and a Qty / Item / Price / T.Price table (Delectus receipt)', () {
+    // Rows as ML Kit reads that receipt: the header block is noisy, two names wrap onto a second
+    // row, and "Guest Bill" has spaced out letters. Net Total is before VAT, Gross Total after.
+    List<OcrLine> delectus(List<String> rows) => [for (var i = 0; i < rows.length; i++) line(rows[i], i)];
+
+    final rows = [
+      'DELECTUS',
+      'Block-G,Plot-2',
+      'Rupayan Shooping Squre',
+      'Phone#+8801330218502',
+      'BIN:006355581-0101',
+      'Mushak-6.3',
+      'able: Outdoor_3',
+      'Waiter:Rayhan.',
+      'G u e s t B i l l',
+      'Date:26-Sep-26 Time:04:49 PM',
+      'Invoice No:T-79336 Number Of Guests:0',
+      'Qty Item Name Price T.Price',
+      '2 Sakura Water 330 ml 15.00 30.00',
+      '1 Chocolate Brownie Cream',
+      '.REGULAR 499.00 499.00',
+      '1 Choco Lava Ice Cream 399.00 399.00',
+      '1 Vanilla Cream.REGULAR 399.00 399.00',
+      '1 Chicken Combo 499.00 499.00',
+      '1 Caramel Banana French T',
+      'cast 599.00 599.00',
+      '1 Tiramisu 369.00 369.00',
+      'Ticket Total: 2,794.00',
+      'Net Total: 2,794.00',
+      'Vat-5.00%: 138.20',
+      'Auto Round --1.00%: -0.20',
+      'Gross Total: 2,932.00',
+      'REMAINING AMOUNT: 2,932.00',
+      'Notes:',
+      'THANK YOU,COME AGAIN',
+      'Powered by:Otomatic,01712615605',
+    ];
+
+    test('every dish once, wrapped names joined, nothing from the header', () {
+      final r = ReceiptParser.parse(delectus(rows));
+      expect(summary(r), [
+        ['Sakura Water 330 ml', 2, 1500],
+        ['Chocolate Brownie Cream Regular', 1, 49900],
+        ['Choco Lava Ice Cream', 1, 39900],
+        ['Vanilla Cream.REGULAR', 1, 39900],
+        ['Chicken Combo', 1, 49900],
+        ['Caramel Banana French Tcast', 1, 59900],
+        ['Tiramisu', 1, 36900],
+      ]);
+      expect(r.subtotal, 279400);
+    });
+
+    test('the receipt total is the final amount, not the one before VAT', () {
+      final r = ReceiptParser.parse(delectus(rows));
+      expect(r.total, 293200);
+      expect(r.vat, 13820);
+      expect(r.place, 'Delectus');
+    });
+
+    test('works when the printed header row is misread', () {
+      final noisy = [...rows]..[11] = 'Oty ltem Name Price T.Price';
+      final r = ReceiptParser.parse(delectus(noisy));
+      expect(r.subtotal, 279400);
+      expect(r.items.length, 7);
+    });
+
+    test('spaced out letters in a heading are not an item', () {
+      final r = ReceiptParser.parse(delectus(['G u e s t B i l l 11', ...rows.sublist(12)]));
+      expect(r.items.any((i) => i.name.toLowerCase().contains('u e s')), isFalse);
+      expect(r.subtotal, 279400);
+    });
+  });
 }
 
 extension on OcrLine {

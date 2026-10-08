@@ -171,13 +171,25 @@ class _ConfirmCard extends StatelessWidget {
           ),
           if (receiptTotal != null) ...[
             const SizedBox(height: AppSpacing.s12),
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSpacing.s12,
+              runSpacing: AppSpacing.s8,
               children: [
-                Text('receipt total ', style: AppType.label14.copyWith(color: AppColors.slate)),
-                Money(receiptTotal!, style: AppType.label14),
-                Text('  .  ours ', style: AppType.label14.copyWith(color: AppColors.slate)),
-                Money(ourTotal, style: AppType.label14),
-                const Spacer(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('receipt total ', style: AppType.label14.copyWith(color: AppColors.slate)),
+                    Money(receiptTotal!, style: AppType.label14),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('ours ', style: AppType.label14.copyWith(color: AppColors.slate)),
+                    Money(ourTotal, style: AppType.label14),
+                  ],
+                ),
                 AppPill(matches ? 'matches' : 'differs', background: matches ? AppColors.lime : AppColors.coral),
               ],
             ),

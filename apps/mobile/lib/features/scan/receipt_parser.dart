@@ -45,15 +45,15 @@ class ReceiptParser {
   static final _ignore = RegExp(
     r'\b(invoice|receipt|bill\s*(no|number|#)|order|table|waiter|cashier|server|served|date|time|tel|phone|mobile|cell|hotline|'
     r'www|email|thank|thanks|visit|welcome|address|road|avenue|dhaka|chattogram|chittagong|sylhet|khulna|rajshahi|'
-    r'bin|mushak|reg|trn|token|guest|pax|customer|cash|change|tender|tendered|visa|mastercard|debit|credit|bkash|nagad|rocket|'
+    r'bin|mushak|reg|trn|token|guests?|pax|block|plot|house|flat|floor|level|sector|shopping|square|squre|plaza|tower|customer|cash|change|tender|tendered|visa|mastercard|debit|credit|bkash|nagad|rocket|'
     r'paid|payment|balance|description|particulars|powered|software|pos|counter|terminal|session|operator)\b|\.com\b|@',
     caseSensitive: false,
   );
-  static final _header = RegExp(r'\b(item|description|particulars|name)\b.*\b(qty|quantity|price|rate|amount|total)\b|\bqty\b.*\b(price|rate|amount)\b', caseSensitive: false);
-  static final _subtotal = RegExp(r'sub\s*-?\s*total|total\s*before|gross\s*(total|amount)', caseSensitive: false);
-  static final _total = RegExp(r'\btotal\b|payable|amount\s*due|bill\s*amount|grand|net\s*amount', caseSensitive: false);
+  static final _header = RegExp(r'\b(item|description|particulars|name)\b.*\b(qty|quantity|price|rate|amount|total)\b|\bqty\b.*\b(price|rate|amount)\b|\bname\b.*\bprice\b', caseSensitive: false);
+  static final _subtotal = RegExp(r'sub\s*-?\s*total|total\s*before', caseSensitive: false);
+  static final _total = RegExp(r'\btotal\b|payable|amount\s*due|bill\s*amount|grand|net\s*amount|remaining\s*amount|gross\s*amount', caseSensitive: false);
   static final _notATotal = RegExp(r'\b(items?|qty|quantity|pax|guests?|persons?|covers?)\b', caseSensitive: false);
-  static final _grand = RegExp(r'grand|net|payable|amount\s*due', caseSensitive: false);
+  static final _grand = RegExp(r'grand|net|gross|remaining|payable|amount\s*due', caseSensitive: false);
   static final _vat = RegExp(r'\bvat\b|v\.a\.t|\btax\b|\bgst\b|\bcgst\b|\bsgst\b', caseSensitive: false);
   static final _service = RegExp(r'service|\bsvc\b|\bs\.?\s*charge\b|\bsc\b', caseSensitive: false);
   static final _adjust = RegExp(r'discount|\bdisc\b|promo|coupon|round|adjust|\boff\b|\btip\b|delivery', caseSensitive: false);
@@ -71,9 +71,14 @@ class ReceiptParser {
     // Items live above the first subtotal/total/vat/service row. If the layout is odd and that
     // leaves nothing, fall back to every plausible row.
     final firstSummary = parsed.indexWhere((r) => _summaryKinds.contains(r.kind));
+    // When the printed column header ("Qty Item Name Price") was read, nothing above it is a dish.
+    final header = parsed.indexWhere((r) => r.kind == _Kind.header);
     List<_Row> candidates(bool limit) => [
           for (final r in parsed)
-            if (r.kind == _Kind.item && (!limit || firstSummary == -1 || r.index < firstSummary)) r,
+            if (r.kind == _Kind.item &&
+                (!limit || firstSummary == -1 || r.index < firstSummary) &&
+                (!limit || header == -1 || r.index > header))
+              r,
         ];
     var itemRows = candidates(true);
     if (itemRows.isEmpty) itemRows = candidates(false);
@@ -155,6 +160,14 @@ class ReceiptParser {
 
   static _Row _classify(String raw, int index) {
     var text = _normalize(raw);
+    // "G u e s t B i l l": letters spaced out by the printer. Joined so it can be recognised.
+    final spaced = RegExp(r'(?<![A-Za-z])[A-Za-z](?: [A-Za-z]){2,}(?![A-Za-z])').firstMatch(text);
+    var spacedHeading = false;
+    if (spaced != null) {
+      final joined = spaced.group(0)!.replaceAll(' ', '');
+      spacedHeading = RegExp(r'guest|bill|invoice|table|waiter|date|time|receipt|order|customer', caseSensitive: false).hasMatch(joined);
+      text = text.replaceRange(spaced.start, spaced.end, joined);
+    }
     final row = _Row(index, text);
     final lower = text.toLowerCase();
     if (text.isEmpty) return row;
@@ -202,7 +215,12 @@ class ReceiptParser {
     row.letters = letters;
 
     final l = row.label.toLowerCase();
-    if (_subtotal.hasMatch(l)) {
+    row.continuation = RegExp(r'^[.,]\s*\w|^[a-z]').hasMatch(text);
+    if (_header.hasMatch(lower) && row.amount == null) {
+      row.kind = _Kind.header;
+    } else if (spacedHeading || row.label.contains(':')) {
+      row.kind = _Kind.ignored; // "Table: Outdoor_3", "Waiter:Rayhan", "G u e s t B i l l"
+    } else if (_subtotal.hasMatch(l)) {
       row.kind = _Kind.subtotal;
     } else if (_total.hasMatch(l) && _notATotal.hasMatch(l)) {
       row.kind = _Kind.ignored; // "Total Items: 4"
@@ -219,6 +237,7 @@ class ReceiptParser {
     } else {
       row.kind = _Kind.item;
     }
+    if (row.kind == _Kind.ignored && row.label.contains(':') && _vat.hasMatch(l)) row.kind = _Kind.vat;
     // A row with a label but nothing priced is text (a wrapped name or a heading).
     if (row.kind == _Kind.item && row.amount == null) row.kind = _Kind.text;
     return row;
@@ -228,6 +247,25 @@ class ReceiptParser {
   static void _mergeSplitRows(List<_Row> rows) {
     for (var i = 0; i + 1 < rows.length; i++) {
       final a = rows[i], b = rows[i + 1];
+      // "1 Chocolate Brownie Cream" then ".REGULAR 499.00 499.00": a printed name that wrapped,
+      // its second half carrying the price. The first half starts with the quantity.
+      final aIsQtyName = a.kind == _Kind.text &&
+          a.amount == null &&
+          RegExp(r'^\d{1,2}\s+[A-Za-z]').hasMatch(a.label) &&
+          !_ignore.hasMatch(a.label.toLowerCase());
+      final bIsRest = b.kind == _Kind.item && b.continuation && !RegExp(r'^\d{1,2}\s+[A-Za-z]').hasMatch(b.label);
+      if (aIsQtyName && bIsRest) {
+        // Cut mid word ("French T" + "oast"): no space between the halves.
+        final midWord = RegExp(r'\s[A-Za-z]$').hasMatch(a.label) && RegExp(r'^[a-z]').hasMatch(b.label);
+        a
+          ..kind = _Kind.item
+          ..label = midWord ? '${a.label}${b.label}' : '${a.label} ${b.label}'
+          ..values = b.values
+          ..amount = b.amount
+          ..markerQty = a.markerQty ?? b.markerQty;
+        b.kind = _Kind.merged;
+        continue;
+      }
       final aIsNameOnly = a.kind == _Kind.text && a.letters >= 2 && a.amount == null && !_ignore.hasMatch(a.label.toLowerCase());
       final bIsPriceOnly = b.kind == _Kind.text && b.letters < 2 && b.amount != null;
       if (aIsNameOnly && bIsPriceOnly) {
@@ -331,7 +369,7 @@ class ReceiptParser {
 
 const _summaryKinds = {_Kind.subtotal, _Kind.total, _Kind.vat, _Kind.service, _Kind.adjust};
 
-enum _Kind { text, ignored, item, subtotal, total, vat, service, adjust, merged }
+enum _Kind { text, ignored, header, item, subtotal, total, vat, service, adjust, merged }
 
 class _Row {
   _Row(this.index, this.text);
@@ -340,6 +378,7 @@ class _Row {
   String label = '';
   int letters = 0;
   int? markerQty;
+  bool continuation = false; // starts like the tail of a wrapped name (".REGULAR", "cast")
   List<({int poisha, bool decimal})> values = const [];
   int? amount;
   _Kind kind = _Kind.text;

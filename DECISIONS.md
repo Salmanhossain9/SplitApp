@@ -108,3 +108,17 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - **`supabase/setup_all.sql`** is generated from the migrations (`tool/build_setup_sql.sh`) and is the file `tests/run.sh` actually runs, so what you paste into the dashboard is what was tested. Functions use explicit `npm:` / `jsr:` imports so `supabase functions deploy --use-api` needs no import map and no Docker.
 - The share page reads its function URL from `web/share/config.js` (the one value that has to be edited once per project).
 - The Chromium smoke test (`tool/web_e2e`) was removed: it depended on the fake sample data and fake scan. The widget flow tests cover the same flow, including the camera path with a fake camera.
+
+## First real receipt (Delectus) and phone layout
+- Receipt table header ("Qty Item Name Price T.Price") now bounds the item list: nothing above it
+  is a dish. If OCR misreads the header, the older heuristics still run, now with address words,
+  `label: value` rows and spaced-out letters ("G u e s t B i l l") ignored.
+- A name that wraps ("1 Chocolate Brownie Cream" / ".REGULAR 499.00 499.00") is joined into one item;
+  a name cut mid word ("French T" / "oast") joins without a space.
+- "Gross Total" and "Remaining Amount" are the final payable total (they were read as a subtotal and
+  skipped), so the receipt total check compares against the right figure.
+- Layout overflow on the real phone came from a larger system font: item price field now shrinks,
+  the step pill no longer covers the title, receipt/ours row wraps. test/narrow_layout_test.dart
+  runs those widgets at 320-411 dp and font scale up to 1.3.
+- VAT on that receipt (138.20) excludes the 30 Tk water, so it is 4.95% of the items. The app stores a
+  rate, so "ours" can differ from the receipt by a few taka. The person adjusts the rate.

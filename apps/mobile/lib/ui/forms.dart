@@ -150,9 +150,22 @@ class _ItemEditCardState extends State<ItemEditCard> {
                 child: Center(child: Text('${widget.qty}', style: AppType.heading20)),
               ),
               CircleIconButton(icon: AppIcons.plus, onTap: () => widget.onQty(widget.qty + 1)),
-              const Spacer(),
+              const SizedBox(width: AppSpacing.s8),
               Text('each ', style: AppType.label14.copyWith(color: AppColors.slate)),
-              AmountField(poisha: widget.unitPrice, onChanged: widget.onUnitPrice),
+              // Takes what is left on narrow phones instead of overflowing.
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: AppDims.amountFieldWidth),
+                    child: AmountField(
+                      poisha: widget.unitPrice,
+                      onChanged: widget.onUnitPrice,
+                      width: double.infinity,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           if (widget.qty > 1)
