@@ -76,28 +76,31 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('collected', style: AppType.body16),
+              Row(
+                children: [
+                  Expanded(child: Text('collected', style: AppType.body16)),
+                  if (summary.openTabs > 0)
+                    AppPill(
+                      '${formatTaka(summary.openTabs)} owed to you',
+                      background: AppColors.lime,
+                      style: AppType.label14,
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s4),
+                    ),
+                ],
+              ),
               const SizedBox(height: AppSpacing.s4),
               Money(summary.collected, style: AppType.amount56, lightDecimals: true),
               const SizedBox(height: AppSpacing.s4),
               Text(
-                'of ${formatTaka(summary.target)} . $paidCount of ${friends.length} paid',
+                'of ${formatTaka(summary.target)} · $paidCount of ${friends.length} paid',
                 style: AppType.label14,
               ),
               const SizedBox(height: AppSpacing.s16),
               ProgressSplitBar(
                 done: summary.collected,
                 pending: summary.target - summary.collected,
+                pendingColor: AppColors.white,
               ),
-              if (summary.openTabs > 0) ...[
-                const SizedBox(height: AppSpacing.s12),
-                AppPill(
-                  '${formatTaka(summary.openTabs)} owed to you',
-                  background: AppColors.coral,
-                  style: AppType.label14,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s4),
-                ),
-              ],
             ],
           ),
         ),
@@ -107,6 +110,7 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
             person: f,
             amount: d.shareOf(f.id),
             method: d.entryOf(f.id).method,
+            owed: d.entryOf(f.id).owed,
             onMethod: (m) => n.setMethod(f.id, m),
             cover: d.entryOf(f.id).method == SettleMethod.owesMe
                 ? _cover(d, n, f.id, f.name)
@@ -116,7 +120,7 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
           Row(
             children: [
               Expanded(child: Text('open tabs', style: AppType.heading20)),
-              AppPill('${tabs.length} open', background: AppColors.coral),
+              AppPill('${tabs.length} open', background: AppColors.lime),
             ],
           ),
           for (final f in tabs)

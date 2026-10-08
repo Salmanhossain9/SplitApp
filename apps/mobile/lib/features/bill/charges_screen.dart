@@ -111,7 +111,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
           decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
           child: Column(
             children: [
-              _line('items subtotal', Money(d.subtotal, style: AppType.body16)),
+              _line('items subtotal', Money(d.subtotal, style: AppType.body16), labelColor: AppColors.slate),
               const SizedBox(height: AppSpacing.s12),
               ChargeRow(
                 label: 'VAT',
@@ -130,6 +130,8 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
                 onRateChanged: n.setServiceRate,
                 amountBuilder: (a) => Money(a, style: AppType.body16),
               ),
+              const SizedBox(height: AppSpacing.s16),
+              const SizedBox(height: AppDims.divider, width: double.infinity, child: ColoredBox(color: AppColors.cream)),
               const SizedBox(height: AppSpacing.s16),
               _line('bill total', Money(d.total, style: AppType.title24)),
             ],
@@ -161,9 +163,9 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
     );
   }
 
-  Widget _line(String label, Widget value) => Row(
+  Widget _line(String label, Widget value, {Color? labelColor}) => Row(
         children: [
-          Expanded(child: Text(label, style: AppType.body16)),
+          Expanded(child: Text(label, style: AppType.body16.copyWith(color: labelColor))),
           value,
         ],
       );

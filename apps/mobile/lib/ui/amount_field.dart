@@ -176,12 +176,14 @@ class ChargeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: AppType.body16)),
+        Expanded(
+          child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(label, style: AppType.body16)),
+        ),
         RateField(rateBp: rateBp, onChanged: onRateChanged, enabled: enabled),
         const SizedBox(width: AppSpacing.s8),
         Text('%', style: AppType.body16.copyWith(color: AppColors.slate)),
         const SizedBox(width: AppSpacing.s12),
-        SizedBox(width: AppDims.amountFieldWidth - AppSpacing.s32, child: Align(alignment: Alignment.centerRight, child: amountBuilder(amount))),
+        SizedBox(width: AppDims.amountFieldWidth - AppSpacing.s48, child: Align(alignment: Alignment.centerRight, child: amountBuilder(amount))),
       ],
     );
   }

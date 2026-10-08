@@ -129,3 +129,11 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - Equally-for-everyone and typed-share modes offer no choice. In typed-share mode the rate fields are
   locked, because changing a rate after the person typed the shares made the bills stop adding up.
 - Open question: with "equally", someone who ate nothing still pays an equal share of VAT.
+
+## Settle and all-settled screens follow the Figma frames
+- Settle: "owed to you" pill is lime and sits on the "collected" row; the bar is lavender on white;
+  avatars carry the lime ring; a friend on a tab shows "owes ৳200"; the cover panel says "I am covering";
+  the open-tabs count pill is lime. The VAT/service card has a divider above the total.
+- All settled: the confetti is a burst out of the check badge, then a light rain (pills, dots,
+  squiggles, stars), about four seconds. A heavy haptic tap lands as the badge pops, the recap tiles
+  spring in one after another, and tapping the badge plays it again.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:split_core/split_core.dart' show formatTaka;
 
 import '../core/person.dart';
 import '../theme/tokens.dart';
@@ -75,11 +76,15 @@ class SettleRow extends StatelessWidget {
     required this.amount,
     required this.method,
     required this.onMethod,
+    this.owed = 0,
     this.cover,
   });
 
   final Person person;
   final int amount;
+
+  /// What is left on the tab when the method is "owes me".
+  final int owed;
 
   /// null = nothing picked yet (pending).
   final SettleMethod? method;
@@ -99,7 +104,12 @@ class SettleRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Avatar(name: person.name, color: avatarColorOf(person.avatarColor), size: AppSize.avatarSettle),
+              Avatar(
+                name: person.name,
+                color: avatarColorOf(person.avatarColor),
+                size: AppSize.avatarSettle,
+                ringColor: AppColors.lime,
+              ),
               const SizedBox(width: AppSpacing.s12),
               Expanded(child: Text(person.name, style: AppType.heading20)),
               Column(
@@ -108,7 +118,7 @@ class SettleRow extends StatelessWidget {
                   Money(amount, style: AppType.heading20),
                   const SizedBox(height: 2),
                   AppPill(
-                    paid ? 'paid' : owes ? 'owes me' : 'pending',
+                    paid ? 'paid' : owes ? 'owes ${formatTaka(owed)}' : 'pending',
                     background: paid ? AppColors.lime : AppColors.coral,
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: AppSpacing.s4),
                   ),
@@ -139,7 +149,13 @@ class SettleRow extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text('on tab', style: AppType.body16)),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text('I am covering', style: AppType.body16),
+                        ),
+                      ),
                       CircleIconButton(icon: AppIcons.minus, onTap: cover!.onMinus),
                       const SizedBox(width: AppSpacing.s8),
                       AmountField(

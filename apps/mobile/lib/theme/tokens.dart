@@ -150,6 +150,7 @@ class AppDims {
       sheetHandleHeight = 6.0,
       sheetTopRadius = 40.0,
       amountFieldWidth = 128.0,
+      divider = 2.0,
       screenTop = 56.0,
       splitBarGap = 2.0,
       coverStep = 5000.0;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -97,6 +98,39 @@ void main() {
       expect(find.byType(ConfettiLayer), findsOneWidget);
       await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/screens/all_settled.png'));
       await pumpFor(tester, 4000); // Let the confetti finish before the test ends.
+    });
+
+    testWidgets('the celebration: a tap you feel, a burst, tiles that pop in, replay on tap', (tester) async {
+      final haptics = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'HapticFeedback.vibrate') haptics.add(call.arguments as String);
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+
+      final c = await settledChillox();
+      await pump(tester, c, '/bill/${c.read(draftBillProvider).id}/done');
+      double scaleOf() => tester
+          .widget<Transform>(find.descendant(of: find.byKey(const ValueKey('pop600')), matching: find.byType(Transform)).first)
+          .transform
+          .entry(0, 0);
+      // Just after arriving: the burst is flying and the recap tiles have not popped in yet.
+      await pumpFor(tester, 100);
+      expect(scaleOf(), lessThan(0.2));
+      await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/screens/all_settled_burst.png'));
+      await pumpFor(tester, 300);
+      expect(haptics, ['HapticFeedbackType.heavyImpact']); // The tap lands as the badge pops.
+      await pumpFor(tester, 1200);
+      expect(scaleOf(), closeTo(1, 0.1));
+
+      // Tapping the badge plays the confetti again.
+      final before = tester.widget<ConfettiLayer>(find.byType(ConfettiLayer)).key;
+      await pumpFor(tester, 3000);
+      await tester.tap(find.byKey(const ValueKey('badge')));
+      await pumpFor(tester, 100);
+      expect(tester.widget<ConfettiLayer>(find.byType(ConfettiLayer)).key, isNot(before));
+      expect(haptics.last, 'HapticFeedbackType.mediumImpact');
+      await pumpFor(tester, 4500);
     });
 
     testWidgets('no open tab: no tab pill', (tester) async {
