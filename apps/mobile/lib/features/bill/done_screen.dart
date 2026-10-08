@@ -71,6 +71,13 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
         ? "${tabs.first.name}'s ${formatTaka(tabTotal)} is saved on your tab"
         : '${tabs.length} tabs worth ${formatTaka(tabTotal)} are saved on your tab';
 
+    // A short or narrow phone: everything has to fit above the two buttons without scrolling.
+    final size = MediaQuery.sizeOf(context);
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 1.6);
+    final compact = size.height / textScale < 800 || size.width < 340;
+    final badge = compact ? 0.62 : 1.0;
+    final gap = compact ? AppSpacing.s12 : AppSpacing.s24;
+
     Future<void> leave(String location) async {
       _leaving = true;
       await ref.read(draftBillProvider.notifier).clear();
@@ -81,7 +88,8 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
       children: [
         ScreenFrame(
           background: AppColors.lavender,
-          gap: AppSpacing.s24,
+          gap: gap,
+          bottomHeight: AppSize.button * 2 + AppSpacing.s12,
           bottom: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -99,7 +107,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
             ],
           ),
           children: [
-            const SizedBox(height: AppSpacing.s16),
+            if (!compact) const SizedBox(height: AppSpacing.s16),
             Stack(
               alignment: Alignment.center,
               children: [
@@ -139,8 +147,8 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
                     child: Transform.scale(
                       scale: scale.clamp(0, 1.4),
                       child: Container(
-                        width: AppSize.avatarChip * 3,
-                        height: AppSize.avatarChip * 3,
+                        width: AppSize.avatarChip * 3 * badge,
+                        height: AppSize.avatarChip * 3 * badge,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: AppColors.white.withValues(
@@ -149,16 +157,16 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Container(
-                          width: AppSize.avatarChip * 2,
-                          height: AppSize.avatarChip * 2,
+                          width: AppSize.avatarChip * 2 * badge,
+                          height: AppSize.avatarChip * 2 * badge,
                           alignment: Alignment.center,
                           decoration: const BoxDecoration(
                             color: AppColors.lime,
                             shape: BoxShape.circle,
                           ),
-                          child: const AppIcon(
+                          child: AppIcon(
                             AppIcons.check,
-                            size: AppSize.avatarChip,
+                            size: AppSize.avatarChip * badge,
                             color: AppColors.lavender,
                             stroke: 3.4,
                           ),
@@ -174,23 +182,28 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'all settled.',
-                style: AppType.celebrate72.copyWith(color: AppColors.white),
+                style: (compact ? AppType.amount56 : AppType.celebrate72).copyWith(color: AppColors.white),
               ),
             ),
             Text(
               '${d.place} is done. $people friends, ${formatTaka(d.total)} and zero awkward.',
-              style: AppType.heading20.copyWith(color: AppColors.white),
+              style: (compact ? AppType.body16 : AppType.heading20).copyWith(color: AppColors.white),
             ),
             if (tabs.isNotEmpty)
               Align(
                 alignment: Alignment.centerLeft,
-                child: AppPill(
-                  tabText,
-                  background: AppColors.lime,
-                  style: AppType.label14,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AppPill(
+                    tabText,
+                    background: AppColors.lime,
+                    style: AppType.label14,
+                  ),
                 ),
               ),
-            IntrinsicHeight(
+            // Three tiles of one height; not IntrinsicHeight, which let one wrapped label stretch them.
+            SizedBox(
+              height: (compact ? AppDims.recapTileCompact : AppDims.recapTile) * textScale,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

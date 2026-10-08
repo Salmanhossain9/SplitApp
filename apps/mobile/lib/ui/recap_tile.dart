@@ -14,15 +14,20 @@ class RecapTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.s16),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s8),
       decoration: BoxDecoration(color: background, borderRadius: AppRadius.rLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: value),
           const SizedBox(height: AppSpacing.s4),
-          Text(label, style: AppType.label14.copyWith(color: AppColors.onColor(background))),
+          // One line, shrinking if it has to: "friends" must never break into "friend / s".
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(label, maxLines: 1, style: AppType.label14.copyWith(color: AppColors.onColor(background))),
+          ),
         ],
       ),
     );

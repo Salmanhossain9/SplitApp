@@ -128,7 +128,7 @@ class _TotalsCard extends StatelessWidget {
         children: [
           Text('items subtotal', style: AppType.body16),
           const SizedBox(height: AppSpacing.s4),
-          Money(subtotal, style: AppType.amount56, lightDecimals: true),
+          Money(subtotal, style: AppType.amount56, lightDecimals: true, fit: true),
           const SizedBox(height: AppSpacing.s4),
           Text('vat and service are added on the last step', style: AppType.label14),
         ],

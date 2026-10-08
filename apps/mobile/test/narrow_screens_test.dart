@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
 import 'package:splitup/features/bill/draft_bill.dart' show hostId;
+import 'package:splitup/ui/ui.dart' show RecapTile, SettleRow;
 import 'package:splitup/features/bill/draft_bill_notifier.dart';
 import 'package:splitup/features/groups/groups_provider.dart';
 import 'package:splitup/features/groups/groups_repository.dart';
@@ -124,6 +125,20 @@ void main() {
         n.setMethod(ids['hasanuzzaman']!, SettleMethod.owesMe);
         n.setOwed(ids['hasanuzzaman']!, 20000);
       });
+      // "collected" and the big amount each sit on one line.
+      expect(tester.getSize(find.text('collected')).height, lessThan(30));
+      final big = tester.getSize(find.textContaining('1,').first).height;
+      expect(big, lessThan(80), reason: 'the collected amount wrapped');
+      // The method chips stay inside their card.
+      final rows = tester.widgetList(find.byType(SettleRow)).length;
+      expect(rows, greaterThan(0));
+      for (var i = 0; i < rows; i++) {
+        final card = tester.getRect(find.byType(SettleRow).at(i));
+        for (final m in ['cash', 'bKash', 'bank', 'owes me']) {
+          final chip = tester.getRect(find.descendant(of: find.byType(SettleRow).at(i), matching: find.text(m)));
+          expect(chip.right, lessThanOrEqualTo(card.right), reason: '$m is outside its card');
+        }
+      }
       await finish(tester);
     });
     testWidgets('all settled, $tag', (tester) async {
@@ -136,6 +151,20 @@ void main() {
         n.setMethod(ids['karim']!, SettleMethod.cash);
         await n.finishBill();
       });
+      await tester.pump(const Duration(milliseconds: 800)); // The tiles spring in.
+      // All three tiles are on screen, above the two buttons, and the same height.
+      final tiles = [for (var i = 0; i < 3; i++) tester.getRect(find.byType(RecapTile).at(i))];
+      final buttonTop = tester.getRect(find.text('back to home')).top;
+      for (final t in tiles) {
+        // With a very large font it cannot all fit above the buttons; it scrolls clear of them.
+        if (scale <= 1.15) expect(t.bottom, lessThanOrEqualTo(buttonTop), reason: 'a tile is hidden behind the buttons');
+        expect(t.height, closeTo(tiles.first.height, 1));
+        expect(t.left, greaterThanOrEqualTo(0));
+        expect(t.right, lessThanOrEqualTo(w));
+      }
+      for (final label in ['split', 'friends']) {
+        expect(tester.getSize(find.text(label)).height, lessThan(24), reason: '"$label" wrapped onto two lines');
+      }
       await finish(tester);
     });
   }

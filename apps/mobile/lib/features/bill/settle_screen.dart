@@ -76,9 +76,13 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              // The pill sits beside the label when it fits and drops under it when it does not.
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: AppSpacing.s8,
                 children: [
-                  Expanded(child: Text('collected', style: AppType.body16)),
+                  Text('collected', style: AppType.body16),
                   if (summary.openTabs > 0)
                     AppPill(
                       '${formatTaka(summary.openTabs)} owed to you',
@@ -89,7 +93,7 @@ class _SettleScreenState extends ConsumerState<SettleScreen> {
                 ],
               ),
               const SizedBox(height: AppSpacing.s4),
-              Money(summary.collected, style: AppType.amount56, lightDecimals: true),
+              Money(summary.collected, style: AppType.amount56, lightDecimals: true, fit: true),
               const SizedBox(height: AppSpacing.s4),
               Text(
                 'of ${formatTaka(summary.target)} · $paidCount of ${friends.length} paid',

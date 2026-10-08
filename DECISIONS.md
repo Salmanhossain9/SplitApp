@@ -152,3 +152,11 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
 - Who is here: up to five chips shrink to fit; more scroll.
 - Groups: the active group has a tick and says "active"; its arrow opens "who is here?" to mark friends
   away for this bill. Saving a group ignores a second tap and refuses a name already in use.
+
+## Settle and all-settled on a 320 dp phone
+- "collected" and the big amount no longer break across lines: the owed pill drops under the label when it
+  does not fit, and the amount shrinks to fit (also on items subtotal and the share page total).
+- All settled has a compact layout for short or narrow screens (smaller badge, headline and subtitle,
+  tighter gaps) so the three recap tiles sit above the two buttons without scrolling. The tiles are one
+  fixed height (scaled with the font), one line per label. `ScreenFrame.bottomHeight` makes the body
+  scroll clear of a floating bottom taller than one button; before, two buttons covered the tiles.

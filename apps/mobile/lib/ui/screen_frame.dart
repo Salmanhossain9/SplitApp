@@ -17,6 +17,7 @@ class ScreenFrame extends StatelessWidget {
     this.gap = AppSpacing.s16,
     this.controller,
     this.reserveBottom = false,
+    this.bottomHeight = AppSize.button,
     this.onRefresh,
   });
 
@@ -25,6 +26,9 @@ class ScreenFrame extends StatelessWidget {
 
   /// Leave room at the bottom for a floating element someone else draws (the tab bar).
   final bool reserveBottom;
+
+  /// How tall the floating [bottom] is, so the body scrolls clear of it (two buttons are taller).
+  final double bottomHeight;
 
   final List<Widget> children;
   final Widget? header;
@@ -49,7 +53,7 @@ class ScreenFrame extends StatelessWidget {
     final bottomInset = mq.padding.bottom;
     final floating = (bottom == null && !reserveBottom)
         ? 0.0
-        : AppSize.button + AppSpacing.s24;
+        : bottomHeight + AppSpacing.s24;
     return Scaffold(
       backgroundColor: background,
       body: Stack(

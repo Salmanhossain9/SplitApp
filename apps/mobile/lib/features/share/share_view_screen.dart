@@ -80,7 +80,7 @@ class _Loaded extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('total bill', style: AppType.body16),
-              Money(bill.total, style: AppType.amount56, lightDecimals: true),
+              Money(bill.total, style: AppType.amount56, lightDecimals: true, fit: true),
             ],
           ),
         ),
