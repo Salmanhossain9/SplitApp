@@ -39,6 +39,11 @@ final draftBillProvider = NotifierProvider<DraftBillNotifier, DraftBill>(DraftBi
 /// does not lose a half-claimed bill, and synced to the server (debounced) when logged in.
 class DraftBillNotifier extends Notifier<DraftBill> {
   Timer? _saveTimer;
+
+  /// The draft (as JSON) the server last confirmed, and the save in flight, so sending can skip
+  /// a save that was already done by the background sync.
+  String? _syncedJson;
+  Future<void>? _syncing;
   Timer? _syncTimer;
   StreamSubscription<Map<String, SettleEntry>>? _settleSub;
 
@@ -92,17 +97,37 @@ class DraftBillNotifier extends Notifier<DraftBill> {
     _syncTimer?.cancel();
     _syncTimer = Timer(const Duration(milliseconds: 1200), () async {
       try {
-        await _repo.saveDraft(state);
+        await _syncNow();
       } catch (e) {
         ref.read(syncErrorProvider.notifier).report(e.toString());
       }
     });
   }
 
+  /// Save the draft unless the server already has exactly this version. Calls overlap safely:
+  /// a second caller waits for the save in flight and then checks again.
+  Future<void> _syncNow() async {
+    while (_syncing != null) {
+      await _syncing;
+    }
+    final snapshot = state;
+    final json = jsonEncode(snapshot.toJson());
+    if (json == _syncedJson) return;
+    final save = _repo.saveDraft(snapshot);
+    _syncing = save;
+    try {
+      await save;
+      _syncedJson = json;
+    } finally {
+      _syncing = null;
+    }
+  }
+
   Future<void> clear() async {
     _saveTimer?.cancel();
     _syncTimer?.cancel();
     _settleSub?.cancel();
+    _syncedJson = null;
     state = DraftBill.fresh();
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -198,14 +223,14 @@ class DraftBillNotifier extends Notifier<DraftBill> {
   }
 
   /// Fill the draft from a scan: items, the place if it is still empty, the detected VAT and
-  /// service as rates, and the receipt total to check against. Nothing is final until the
-  /// person confirms the editable list.
+  /// service as rates, and the receipt total to check against. "Does this match your receipt?"
+  /// starts on yes; the person taps it to "not yet" when something was missed, and fixes the list.
   void applyScan(ScanResult r) {
     final subtotal = r.subtotal;
     _set(state.copyWith(
       items: r.toDraftItems(),
       claims: const {},
-      itemsConfirmed: false,
+      itemsConfirmed: r.items.isNotEmpty,
       place: state.place.trim().isEmpty && (r.place ?? '').isNotEmpty ? r.place : null,
       vatRateBp: rateBpFromAmount(r.vat, subtotal),
       serviceRateBp: rateBpFromAmount(r.service, subtotal),
@@ -264,7 +289,10 @@ class DraftBillNotifier extends Notifier<DraftBill> {
     if (state.result == null) return const SendResult.failed('the bills do not add up yet.');
     _syncTimer?.cancel();
     try {
-      final r = await _repo.finalize(state);
+      // Usually the background sync has saved this draft already: then only the server function
+      // is left to call, one request instead of ten.
+      await _syncNow();
+      final r = await _repo.finalize(state, saved: true);
       _set(state.copyWith(status: DraftStatus.open, settlements: const {}, shareUrl: r.shareUrl));
       ref.invalidate(billsProvider);
       return const SendResult.ok();

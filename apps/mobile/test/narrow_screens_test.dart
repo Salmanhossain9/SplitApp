@@ -6,8 +6,9 @@ import 'package:split_core/split_core.dart';
 import 'package:splitup/features/bill/draft_bill.dart' show hostId;
 import 'package:splitup/features/scan/scan_models.dart';
 import 'package:splitup/ui/cards.dart' show TabCard;
+import 'package:splitup/theme/tokens.dart';
 import 'package:splitup/ui/code_field.dart';
-import 'package:splitup/ui/ui.dart' show RecapTile, SettleRow, Logo;
+import 'package:splitup/ui/ui.dart' show AppBackButton, RecapTile, SettleRow, Logo;
 import 'package:splitup/features/bill/draft_bill_notifier.dart';
 import 'package:splitup/features/groups/groups_provider.dart';
 import 'package:splitup/features/groups/groups_repository.dart';
@@ -244,6 +245,56 @@ void main() {
       final owes = tester.getSize(find.textContaining('owes you').first).height;
       expect(owes, lessThan(24), reason: 'the tab label wrapped');
       expect(tab.height, lessThan(130), reason: 'the tab card is too tall');
+      await finish(tester);
+    });
+  }
+
+  testWidgets('the header is short: the back button sits near the top and is 36 tall', (tester) async {
+    await flow(tester, 390, 844, 1.0, route: '/bill/draft/charges');
+    final back = tester.getRect(find.byType(AppBackButton));
+    expect(back.top, lessThanOrEqualTo(34));
+    expect(back.height, lessThanOrEqualTo(36));
+    await finish(tester);
+  });
+
+  testWidgets('the place field asks for "name of place", not a sample name', (tester) async {
+    await flow(tester, 390, 844, 1.0, route: '/bill/new', setup: (n, _) => n.setPlace(''));
+    expect(find.text('name of place'), findsOneWidget);
+    expect(find.text('Chillox'), findsNothing);
+    await finish(tester);
+  });
+
+  for (final (w, h, scale) in [(320.0, 640.0, 1.0), (320.0, 700.0, 1.3), (360.0, 740.0, 1.0), (411.0, 844.0, 1.0)]) {
+    testWidgets('scan tab: both buttons show without scrolling on $w x $h, font x$scale', (tester) async {
+      await flow(tester, w, h, scale, route: '/bill/draft/items', setup: (n, _) {
+        for (final i in [...n.state.items]) {
+          n.removeItem(i.id);
+        }
+      });
+      expect(find.text('take photo'), findsOneWidget);
+      final take = tester.getRect(find.text('take photo'));
+      final upload = tester.getRect(find.text('upload from photos'));
+      expect(take.bottom, lessThanOrEqualTo(h), reason: '"take photo" is below the screen');
+      expect(upload.bottom, lessThanOrEqualTo(h - 8), reason: '"upload from photos" is below the screen');
+      expect(tester.takeException(), isNull);
+      await finish(tester);
+    });
+  }
+
+  for (final (w, scale) in [(320.0, 1.0), (360.0, 1.0), (411.0, 1.0), (320.0, 1.15)]) {
+    testWidgets('vat and service: "Service charge" stays readable at $w dp, font x$scale', (tester) async {
+      await flow(tester, w, 760, scale, route: '/bill/draft/charges');
+      for (final label in ['VAT', 'Service charge']) {
+        final natural = (TextPainter(
+          text: TextSpan(text: label, style: AppType.body16),
+          textDirection: TextDirection.ltr,
+          textScaler: TextScaler.linear(1), // The nominal 16 px, whatever the system font size.
+        )..layout())
+            .width;
+        final shown = tester.getRect(find.text(label)).width;
+        expect(shown / natural, greaterThan(0.88), reason: '"$label" is shrunk to ${(shown / natural * 100).round()}% of its size');
+      }
+      expect(tester.takeException(), isNull);
       await finish(tester);
     });
   }

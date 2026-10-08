@@ -50,8 +50,8 @@ class AppRadius {
 class AppSize {
   static const button = 64.0,
       buttonIcon = 40.0,
-      backButton = 40.0,
-      topBar = 40.0,
+      backButton = 36.0,
+      topBar = 36.0,
       avatarRow = 48.0,
       avatarSettle = 44.0,
       avatarBillCard = 40.0,
@@ -131,7 +131,7 @@ class AppDims {
       stepSegmentRadius = 4.0,
       stepGap = 6.0,
       progressRadius = 7.0,
-      rateFieldWidth = 64.0,
+      rateFieldWidth = 56.0,
       rateFieldHeight = 40.0,
       stepperCircle = 32.0,
       groupFrame = 324.0,
@@ -142,6 +142,9 @@ class AppDims {
       groupOverlap = 8.0,
       selectedChipHeight = 96.0,
       viewfinderHeight = 400.0,
+      viewfinderMin = 160.0,
+      scanChrome = 400.0,
+      chargeAmountWidth = 48.0,
       receiptPaperWidth = 210.0,
       bracket = 40.0,
       bracketStroke = 6.0,
@@ -156,7 +159,7 @@ class AppDims {
       codeBoxMax = 52.0,
       codeBoxHeight = 60.0,
       recapTileCompact = 80.0,
-      screenTop = 56.0,
+      screenTop = 32.0,
       splitBarGap = 2.0,
       coverStep = 5000.0;
   static const groupY = [0.0, 144.0, 204.0];

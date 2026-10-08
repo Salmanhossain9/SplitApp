@@ -31,6 +31,7 @@ class ReceiptViewfinder extends StatefulWidget {
     this.lines = _sampleLines,
     this.title = 'CHILLOX',
     this.dateLine = 'Sep 21 · 9:04 pm',
+    this.height = AppDims.viewfinderHeight,
   });
 
   final bool scanning;
@@ -38,6 +39,9 @@ class ReceiptViewfinder extends StatefulWidget {
   final List<ReceiptLine> lines;
   final String title;
   final String dateLine;
+
+  /// A shorter box on small screens, so the buttons under it show without scrolling.
+  final double height;
 
   @override
   State<ReceiptViewfinder> createState() => _ReceiptViewfinderState();
@@ -74,7 +78,7 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: AppDims.viewfinderHeight,
+      height: widget.height,
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(color: AppColors.navy, borderRadius: AppRadius.rLg),
@@ -83,7 +87,10 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
           Positioned.fill(
             child: widget.camera ??
                 Center(
-                  child: Container(
+                  // The sample receipt shrinks to fit a shorter box instead of overflowing.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Container(
                     width: AppDims.receiptPaperWidth,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: AppSpacing.s16),
                     decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rSm),
@@ -120,6 +127,7 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
                       ],
                     ),
                   ),
+                  ),
                 ),
           ),
           Positioned.fill(
@@ -132,7 +140,7 @@ class _ReceiptViewfinderState extends State<ReceiptViewfinder> with SingleTicker
             child: AnimatedBuilder(
               animation: _scan,
               builder: (context, _) {
-                final range = AppDims.viewfinderHeight - AppDims.scanLine - AppSpacing.s48;
+                final range = widget.height - AppDims.scanLine - AppSpacing.s48;
                 // Idle: parked a third of the way down like the design. Scanning: sweeping.
                 final t = widget.scanning ? Curves.easeInOut.transform(_scan.value) : 0.25;
                 return Align(

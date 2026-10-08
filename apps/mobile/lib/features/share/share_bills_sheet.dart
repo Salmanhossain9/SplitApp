@@ -42,12 +42,18 @@ class ShareImageCard extends StatelessWidget {
 
 /// Opens after "send bills": link, WhatsApp, or a picture of everyone's share. Returns when
 /// the person is done (they can also just swipe it away).
-Future<void> showShareBillsSheet(BuildContext context) {
-  return showAppBottomSheet<void>(context: context, builder: (_) => const ShareBillsSheet());
+///
+/// [sending] is the send still in progress (the sheet opens straight away): the link buttons wait
+/// for it, and if it fails the sheet closes itself so the screen behind can say why.
+Future<void> showShareBillsSheet(BuildContext context, {Future<SendResult>? sending}) {
+  return showAppBottomSheet<void>(context: context, builder: (_) => ShareBillsSheet(sending: sending));
 }
 
 class ShareBillsSheet extends ConsumerStatefulWidget {
-  const ShareBillsSheet({super.key});
+  const ShareBillsSheet({super.key, this.sending});
+
+  /// The send in progress, if the sheet was opened before it finished.
+  final Future<SendResult>? sending;
 
   @override
   ConsumerState<ShareBillsSheet> createState() => _ShareBillsSheetState();
@@ -56,6 +62,20 @@ class ShareBillsSheet extends ConsumerStatefulWidget {
 class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
   final _imageKey = GlobalKey();
   String? _message;
+  late bool _ready = widget.sending == null;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.sending?.then((r) {
+      if (!mounted) return;
+      if (r.ok) {
+        setState(() => _ready = true);
+      } else {
+        Navigator.of(context).maybePop(); // The screen behind shows what went wrong.
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +97,12 @@ class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('bills sent.', style: AppType.display36),
+        Text(_ready ? 'bills sent.' : 'sending...', style: AppType.display36),
         const SizedBox(height: AppSpacing.s4),
         Text(
-          'Friends do not need the app. The link shows each of them their share.',
+          _ready
+              ? 'Friends do not need the app. The link shows each of them their share.'
+              : 'Your bills are going out. The link and WhatsApp are ready in a moment.',
           style: AppType.label14.copyWith(color: AppColors.slate),
         ),
         const SizedBox(height: AppSpacing.s16),
@@ -115,21 +137,25 @@ class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
               background: AppColors.lavender,
               icon: AppIcons.arrowUpRight,
               iconColor: AppColors.lime,
-              onTap: () => run(() => share.shareText(text)),
+              onTap: _ready ? () => run(() => share.shareText(text)) : null,
             ),
             PillButton(
               label: 'whatsapp',
-              onTap: () => run(() async {
-                if (!await share.openWhatsapp(text)) throw StateError('whatsapp');
-              }),
+              onTap: !_ready
+                  ? null
+                  : () => run(() async {
+                        if (!await share.openWhatsapp(text)) throw StateError('whatsapp');
+                      }),
             ),
             PillButton(
               label: 'share as image',
               background: AppColors.white,
-              onTap: () => run(() async {
-                final png = await capturePng(_imageKey);
-                await share.shareImage(png, text: text, fileName: 'splitbit-${d.place.trim().toLowerCase()}.png');
-              }),
+              onTap: !_ready
+                  ? null
+                  : () => run(() async {
+                        final png = await capturePng(_imageKey);
+                        await share.shareImage(png, text: text, fileName: 'splitbit-${d.place.trim().toLowerCase()}.png');
+                      }),
             ),
           ],
         ),
@@ -141,6 +167,7 @@ class _ShareBillsSheetState extends ConsumerState<ShareBillsSheet> {
         WideButton(
           label: 'settle up',
           variant: WideButtonVariant.next,
+          loading: !_ready,
           onPressed: () => Navigator.pop(context),
         ),
       ],

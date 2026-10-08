@@ -126,7 +126,7 @@ void main() {
   });
 
   group('applyScan', () {
-    test('fills items, place, rates and the receipt total; the person still has to confirm', () {
+    test('fills items, place, rates and the receipt total; "does this match" starts on yes', () {
       SharedPreferences.setMockInitialValues({});
       final c = ProviderContainer();
       addTearDown(c.dispose);
@@ -140,8 +140,21 @@ void main() {
       expect([d.vatRateBp, d.serviceRateBp], [590, 590]);
       expect(d.total, 223600);
       expect(d.scannedTotal, 223600);
-      expect(d.itemsConfirmed, isFalse);
-      expect(d.itemsStepValid, isFalse);
+      expect(d.itemsConfirmed, isTrue);
+      expect(d.itemsStepValid, isTrue); // Ready for "who had what?" straight away.
+
+      // The person taps it to "not yet" when something was missed, then fixes the list.
+      n.setItemsConfirmed(false);
+      expect(c.read(draftBillProvider).itemsStepValid, isFalse);
+    });
+
+    test('a scan that found no items is not confirmed', () {
+      SharedPreferences.setMockInitialValues({});
+      final c = ProviderContainer();
+      addTearDown(c.dispose);
+      final n = c.read(draftBillProvider.notifier);
+      n.applyScan(const ScanResult(items: []));
+      expect(c.read(draftBillProvider).itemsConfirmed, isFalse);
     });
 
     test('a place the person already typed is kept', () {
@@ -224,7 +237,14 @@ void main() {
       expect(d.items.length, 4);
       expect(d.subtotal, 200000);
       expect([d.vatRateBp, d.serviceRateBp], [590, 590]);
-      expect(d.itemsConfirmed, isFalse);
+      // Already on "yes": the person only taps it when something was missed.
+      expect(d.itemsConfirmed, isTrue);
+      expect(find.text('yes'), findsOneWidget);
+      expect(find.text('not yet'), findsNothing);
+      await tester.tap(find.text('yes'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('not yet'), findsOneWidget);
+      expect(c.read(draftBillProvider).itemsConfirmed, isFalse);
       expect(session.disposed, isTrue); // The camera was released when the tab went away.
       await tester.pump(const Duration(milliseconds: 400));
     });

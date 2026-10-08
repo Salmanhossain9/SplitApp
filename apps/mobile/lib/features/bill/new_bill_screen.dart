@@ -105,7 +105,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
             const SizedBox(height: AppSpacing.s8),
             HeadlineField(
               controller: _place,
-              hint: 'Chillox',
+              hint: 'name of place',
               textAlign: TextAlign.center,
               onChanged: notifier.setPlace,
             ),

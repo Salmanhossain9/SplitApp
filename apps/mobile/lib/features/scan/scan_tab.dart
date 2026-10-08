@@ -100,12 +100,22 @@ class _ScanTabState extends ConsumerState<ScanTab> {
     }
   }
 
+  double _viewfinderHeight(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    // A larger system font makes the text under the box taller: take a little of it back.
+    final extra = (mq.textScaler.scale(1.0) - 1.0).clamp(0.0, 0.6) * 60;
+    return (mq.size.height - mq.padding.vertical - AppDims.scanChrome - extra)
+        .clamp(AppDims.viewfinderMin, AppDims.viewfinderHeight);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ReceiptViewfinder(
+          // As tall as the screen allows while the two buttons below still show without scrolling.
+          height: _viewfinderHeight(context),
           scanning: _scanning,
           camera: _photo != null
               ? Image.memory(_photo!, fit: BoxFit.cover)

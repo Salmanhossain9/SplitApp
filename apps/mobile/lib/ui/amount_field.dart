@@ -146,7 +146,7 @@ class RateField extends StatelessWidget {
         fromText: parseRateBp,
         width: AppDims.rateFieldWidth,
         height: AppDims.rateFieldHeight,
-        horizontalPadding: AppSpacing.s8,
+        horizontalPadding: AppSpacing.s4,
         enabled: enabled,
       );
 }
@@ -180,10 +180,13 @@ class ChargeRow extends StatelessWidget {
           child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(label, style: AppType.body16)),
         ),
         RateField(rateBp: rateBp, onChanged: onRateChanged, enabled: enabled),
-        const SizedBox(width: AppSpacing.s8),
+        const SizedBox(width: 2),
         Text('%', style: AppType.body16.copyWith(color: AppColors.slate)),
-        const SizedBox(width: AppSpacing.s12),
-        SizedBox(width: AppDims.amountFieldWidth - AppSpacing.s48, child: Align(alignment: Alignment.centerRight, child: amountBuilder(amount))),
+        const SizedBox(width: AppSpacing.s8 - 2),
+        SizedBox(
+          width: AppDims.chargeAmountWidth,
+          child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: amountBuilder(amount)),
+        ),
       ],
     );
   }

@@ -53,7 +53,7 @@ class AppTextField extends StatelessWidget {
   }
 }
 
-/// Big flat headline input: the place name ("Chillox").
+/// Big flat headline input: the place name.
 class HeadlineField extends StatelessWidget {
   const HeadlineField({
     super.key,

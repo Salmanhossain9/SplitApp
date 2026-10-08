@@ -191,3 +191,16 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   and the share page logo. Run it again if the image changes.
 - Code boxes on the login screen are six separate boxes, at most 52 wide, sized to the screen.
 - Home: the month total is smaller, and the tab card shows its label and amount on one line with a small remind button.
+
+## Shorter header, quicker send, scan and VAT screen tidy-up
+- Header: 32 dp from the top (was 56), top bar and back button 36 dp (were 40).
+- "Where are we eating?" asks for "name of place", not a sample name.
+- Scan tab: the viewfinder is as tall as the screen allows (160 to 400 dp) so "take photo" and "upload
+  from photos" show without scrolling; the sample receipt inside it scales down to fit.
+- "Does this match your receipt?" starts on yes after a scan that found items; the person taps it to "not yet".
+- VAT and service: less side padding, a narrower amount column that shrinks long amounts, tighter gaps. Row
+  heights are unchanged, so nothing below moves. "Service charge" keeps at least 88 percent of its size at 320 dp.
+- Send bills was about ten requests one after another. Now: the background sync's work is reused (a draft the
+  server already has is not saved again), the independent saves go out in parallel (four rounds, was nine), and
+  the "bills sent" sheet opens straight away while the server answers; the link and WhatsApp buttons wait for it,
+  and a failed send closes the sheet with the reason.

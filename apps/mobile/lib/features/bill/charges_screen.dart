@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,14 +22,18 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
   bool _sending = false;
 
   Future<void> _send() async {
+    if (_sending) return;
     setState(() => _sending = true);
-    final result = await ref.read(draftBillProvider.notifier).sendBills();
+    // Start sending and open the sheet at once; it fills in when the server answers. The
+    // picture of everyone's share needs nothing from the server, so there is no waiting screen.
+    final sending = ref.read(draftBillProvider.notifier).sendBills();
+    unawaited(sending.whenComplete(() {
+      if (mounted) setState(() => _sending = false);
+    }));
+    await showShareBillsSheet(context, sending: sending);
+    final result = await sending;
     if (!mounted) return;
-    setState(() => _sending = false);
     if (result.ok) {
-      // Send bills opens the share sheet, then moves on to settle up.
-      await showShareBillsSheet(context);
-      if (!mounted) return;
       context.pushReplacement('/bill/${ref.read(draftBillProvider).id}/settle');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +113,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
             style: AppType.label14.copyWith(color: AppColors.slate),
           ),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.s24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s24),
           decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rLg),
           child: Column(
             children: [

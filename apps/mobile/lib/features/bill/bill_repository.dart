@@ -68,8 +68,9 @@ abstract class BillRepository {
   Future<void> saveDraft(DraftBill draft);
 
   /// Save, then ask the `finalize-bill` function to recompute the shares on the server,
-  /// store them, open the bill and mint the share link.
-  Future<FinalizeResult> finalize(DraftBill draft);
+  /// store them, open the bill and mint the share link. [saved] says the server already has
+  /// this exact draft (the background sync did it), so only the function call is left.
+  Future<FinalizeResult> finalize(DraftBill draft, {bool saved = false});
 
   /// Write one friend's settle row (method, paid, tab).
   Future<void> saveSettlement(DraftBill draft, String personId);
@@ -139,20 +140,27 @@ class SupabaseBillRepository implements BillRepository {
     final host = _requireHost();
     final rows = draftToRows(d, hostUserId: host.userId, hostName: host.name);
     try {
-      if (rows.friends.isNotEmpty) await _client.from('friends').upsert(rows.friends);
-      await _client.from('bills').upsert(rows.bill);
-
-      await _client.from('bill_participants').upsert(rows.participants);
-      await _deleteMissing('bill_participants', 'bill_id', d.id, rows.participants.map((r) => r['id'] as String));
-
-      if (rows.items.isNotEmpty) await _client.from('items').upsert(rows.items);
-      await _deleteMissing('items', 'bill_id', d.id, rows.items.map((r) => r['id'] as String));
+      // Four rounds instead of nine one after another. Within a round the requests do not depend
+      // on each other; each round needs the one before it (rows point at friends, bills, items).
+      await Future.wait<void>([
+        if (rows.friends.isNotEmpty) _client.from('friends').upsert(rows.friends).then((_) {}),
+        _client.from('bills').upsert(rows.bill).then((_) {}),
+      ]);
 
       final itemIds = rows.items.map((r) => r['id'] as String).toList();
-      if (itemIds.isNotEmpty) await _client.from('claims').delete().inFilter('item_id', itemIds);
-      if (rows.claims.isNotEmpty) await _client.from('claims').insert(rows.claims);
+      await Future.wait<void>([
+        _client.from('bill_participants').upsert(rows.participants).then((_) {}),
+        if (rows.items.isNotEmpty) _client.from('items').upsert(rows.items).then((_) {}),
+        _client.from('charges').upsert(rows.charges).then((_) {}),
+      ]);
 
-      await _client.from('charges').upsert(rows.charges);
+      await Future.wait<void>([
+        _deleteMissing('bill_participants', 'bill_id', d.id, rows.participants.map((r) => r['id'] as String)),
+        _deleteMissing('items', 'bill_id', d.id, itemIds),
+        if (itemIds.isNotEmpty) _client.from('claims').delete().inFilter('item_id', itemIds).then((_) {}),
+      ]);
+
+      if (rows.claims.isNotEmpty) await _client.from('claims').insert(rows.claims);
     } on PostgrestException catch (e) {
       throw BillSyncException(_friendly(e));
     }
@@ -166,8 +174,8 @@ class SupabaseBillRepository implements BillRepository {
   }
 
   @override
-  Future<FinalizeResult> finalize(DraftBill d) async {
-    await saveDraft(d);
+  Future<FinalizeResult> finalize(DraftBill d, {bool saved = false}) async {
+    if (!saved) await saveDraft(d);
     try {
       final res = await _client.functions.invoke('finalize-bill', body: {'bill_id': d.id});
       final data = res.data as Map<String, dynamic>;
@@ -311,7 +319,7 @@ class LocalBillRepository implements BillRepository {
   Future<void> saveDraft(DraftBill draft) async {}
 
   @override
-  Future<FinalizeResult> finalize(DraftBill draft) async {
+  Future<FinalizeResult> finalize(DraftBill draft, {bool saved = false}) async {
     final token = List.generate(22, (_) => 'abcdefghijklmnopqrstuvwxyz0123456789'[Random().nextInt(36)]).join();
     _bills[draft.id] = BillSummary.fromDraft(draft.copyWith(status: DraftStatus.open), now: _now);
     return FinalizeResult(shareUrl: '${Env.shareBaseUrl}/s/$token', total: draft.total);
