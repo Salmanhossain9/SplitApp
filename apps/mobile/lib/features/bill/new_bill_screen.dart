@@ -25,87 +25,26 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
     super.dispose();
   }
 
-  Future<void> _addGuest() async {
-    final name = TextEditingController();
-    final phone = TextEditingController();
-    await showAppBottomSheet<void>(
+  Future<void> _addGuest() {
+    return showAppBottomSheet<void>(
       context: context,
-      builder: (ctx) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('add a friend', style: AppType.display36),
-          const SizedBox(height: AppSpacing.s8),
-          Text(
-            'They do not need the app. They get a link to see their share.',
-            style: AppType.label14.copyWith(color: AppColors.slate),
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          AppTextField(
-            background: AppColors.white,
-            controller: name,
-            hint: 'name',
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          AppTextField(
-            background: AppColors.white,
-            controller: phone,
-            hint: 'phone (optional, for WhatsApp reminders)',
-            keyboardType: TextInputType.phone,
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          WideButton(
-            label: 'add friend',
-            variant: WideButtonVariant.done,
-            onPressed: () {
-              if (name.text.trim().isEmpty) return;
-              ref.read(draftBillProvider.notifier).addGuest(name.text, phone: phone.text);
-              Navigator.pop(ctx);
-            },
-          ),
-        ],
+      builder: (ctx) => _AddGuestSheet(
+        onAdd: (name, phone) => ref.read(draftBillProvider.notifier).addGuest(name, phone: phone),
       ),
     );
-    name.dispose();
-    phone.dispose();
   }
 
-  Future<void> _saveGroup() async {
-    final name = TextEditingController();
-    await showAppBottomSheet<void>(
+  Future<void> _saveGroup() {
+    return showAppBottomSheet<void>(
       context: context,
-      builder: (ctx) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('name this group', style: AppType.display36),
-          const SizedBox(height: AppSpacing.s16),
-          AppTextField(
-            background: AppColors.white,
-            controller: name,
-            hint: 'NSU boys',
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: AppSpacing.s16),
-          WideButton(
-            label: 'save group',
-            variant: WideButtonVariant.done,
-            onPressed: () async {
-              if (name.text.trim().isEmpty) return;
-              final friends = ref.read(draftBillProvider).participants.where((p) => !p.isHost).toList();
-              final nav = Navigator.of(ctx);
-              final created = await ref.read(groupsProvider.notifier).create(name.text, friends);
-              ref.read(draftBillProvider.notifier).setGroup(created.id);
-              nav.pop();
-            },
-          ),
-        ],
+      builder: (ctx) => _SaveGroupSheet(
+        onSave: (name) async {
+          final friends = ref.read(draftBillProvider).participants.where((p) => !p.isHost).toList();
+          final created = await ref.read(groupsProvider.notifier).create(name, friends);
+          ref.read(draftBillProvider.notifier).setGroup(created.id);
+        },
       ),
     );
-    name.dispose();
   }
 
   @override
@@ -241,6 +180,117 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                 onTap: notifier.loadGroup,
               ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+// The sheets own their text controllers. Disposing them right after showModalBottomSheet returns
+// is too early: the route future completes while the close animation still draws the fields.
+class _AddGuestSheet extends StatefulWidget {
+  const _AddGuestSheet({required this.onAdd});
+  final void Function(String name, String phone) onAdd;
+
+  @override
+  State<_AddGuestSheet> createState() => _AddGuestSheetState();
+}
+
+class _AddGuestSheetState extends State<_AddGuestSheet> {
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('add a friend', style: AppType.display36),
+        const SizedBox(height: AppSpacing.s8),
+        Text(
+          'They do not need the app. They get a link to see their share.',
+          style: AppType.label14.copyWith(color: AppColors.slate),
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        AppTextField(
+          background: AppColors.white,
+          controller: _name,
+          hint: 'name',
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        AppTextField(
+          background: AppColors.white,
+          controller: _phone,
+          hint: 'phone (optional, for WhatsApp reminders)',
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        WideButton(
+          label: 'add friend',
+          variant: WideButtonVariant.done,
+          onPressed: () {
+            if (_name.text.trim().isEmpty) return;
+            widget.onAdd(_name.text, _phone.text);
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _SaveGroupSheet extends StatefulWidget {
+  const _SaveGroupSheet({required this.onSave});
+  final Future<void> Function(String name) onSave;
+
+  @override
+  State<_SaveGroupSheet> createState() => _SaveGroupSheetState();
+}
+
+class _SaveGroupSheetState extends State<_SaveGroupSheet> {
+  final _name = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('name this group', style: AppType.display36),
+        const SizedBox(height: AppSpacing.s16),
+        AppTextField(
+          background: AppColors.white,
+          controller: _name,
+          hint: 'NSU boys',
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: AppSpacing.s16),
+        WideButton(
+          label: 'save group',
+          variant: WideButtonVariant.done,
+          onPressed: () async {
+            if (_name.text.trim().isEmpty) return;
+            final nav = Navigator.of(context);
+            await widget.onSave(_name.text);
+            nav.pop();
+          },
         ),
       ],
     );
