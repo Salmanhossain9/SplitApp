@@ -19,13 +19,13 @@ class WelcomeScreen extends StatelessWidget {
           WideButton(
             label: 'split a bill',
             variant: WideButtonVariant.start,
-            onPressed: () => context.go('/auth/email'),
+            onPressed: () => context.go('/auth/login'),
           ),
           const SizedBox(height: AppSpacing.s12),
           WideButton(
             label: 'log in / sign up',
             variant: WideButtonVariant.login,
-            onPressed: () => context.go('/auth/email'),
+            onPressed: () => context.go('/auth/login'),
           ),
         ],
       ),

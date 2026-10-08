@@ -11,6 +11,12 @@ class AppColors {
   static const white = Color(0xFFFFFFFF);
   static const clear = Color(0x00000000);
 
+  /// Google's brand colours, for its mark on the sign-in button only.
+  static const googleBlue = Color(0xFF4285F4);
+  static const googleRed = Color(0xFFEA4335);
+  static const googleYellow = Color(0xFFFBBC05);
+  static const googleGreen = Color(0xFF34A853);
+
   /// Bill cards cycle through these per person (section 7.2).
   static const billCardCycle = [lavender, lime, sky, coral];
 

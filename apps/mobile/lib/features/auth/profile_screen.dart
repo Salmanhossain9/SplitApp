@@ -24,6 +24,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // Google tells us the person's name: start from it instead of an empty field.
+    _name.text = ref.read(authRepositoryProvider).suggestedName ?? '';
+  }
+
+  @override
   void dispose() {
     _name.dispose();
     _bkash.dispose();

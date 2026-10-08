@@ -13,7 +13,7 @@ major_version = 15
 [auth]
 enabled = true
 site_url = "splitup://login-callback"
-additional_redirect_urls = ["splitup://login-callback"]
+additional_redirect_urls = ["splitup://login-callback", "splitbit://login-callback"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true

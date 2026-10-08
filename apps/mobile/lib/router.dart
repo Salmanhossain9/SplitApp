@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/auth/auth_providers.dart';
-import 'features/auth/email_screen.dart';
+import 'features/auth/login_screen.dart';
 import 'features/auth/profile_screen.dart';
 import 'features/auth/verify_screen.dart';
 import 'features/bill/charges_screen.dart';
@@ -57,18 +57,26 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/',
     refreshListenable: refresh,
-    redirect: (context, state) => redirectFor(
+    redirect: (context, state) {
+      // Google sends the browser back to splitbit://login-callback. supabase_flutter reads that link
+      // and signs in; the router just must not show an unknown page for it.
+      if (state.uri.host == 'login-callback' || state.uri.path == '/login-callback') return '/';
+      return redirectFor(
       location: state.uri.path,
       session: ref.read(sessionProvider),
       profile: ref.read(profileProvider),
-    ),
+    );
+    },
     routes: [
       GoRoute(path: '/', builder: (_, _) => const _Splash()),
       GoRoute(path: '/welcome', builder: (_, _) => const WelcomeScreen()),
-      GoRoute(path: '/auth/email', builder: (_, _) => const EmailScreen()),
+      GoRoute(path: '/auth/login', builder: (_, _) => const LoginScreen()),
       GoRoute(
         path: '/auth/verify',
-        builder: (_, state) => VerifyScreen(email: state.uri.queryParameters['email'] ?? ''),
+        builder: (_, state) => VerifyScreen(
+          contact: state.uri.queryParameters['contact'] ?? '',
+          isPhone: state.uri.queryParameters['kind'] == 'phone',
+        ),
       ),
       GoRoute(path: '/auth/profile', builder: (_, _) => const ProfileScreen()),
       StatefulShellRoute.indexedStack(

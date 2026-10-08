@@ -74,6 +74,8 @@ npx supabase@latest functions deploy send-reminders --use-api
 `--use-api` means Docker is not needed. `--no-verify-jwt` is only for `share-view`, because
 friends open it without an account.
 
+> Google and phone login are set up separately: see `docs/LOGIN_SETUP.md`.
+
 ## 6. Host the share page (so friends can see their bill)
 1. Open `web/share/config.js` and replace `YOUR-PROJECT` with your project reference:
    `https://abcdxyz.supabase.co/functions/v1/share-view`

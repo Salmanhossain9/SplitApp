@@ -204,3 +204,16 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   server already has is not saved again), the independent saves go out in parallel (four rounds, was nine), and
   the "bills sent" sheet opens straight away while the server answers; the link and WhatsApp buttons wait for it,
   and a failed send closes the sheet with the reason.
+
+## New login screen: Google, Apple (placeholder), email or phone code
+- One screen, "hop in.": log in / sign up tabs, continue with Apple, continue with Google, then a card with
+  email (default) or phone and "send me a code". The two tabs are only wording: passwordless login and
+  sign-up are the same call (`shouldCreateUser: true`), and making log in refuse new people would turn friends
+  with the shared APK away.
+- Google uses Supabase's browser OAuth (no native Google SDK, so no per-device SHA-1 to register). It returns
+  through `splitbit://login-callback`, listed in the Android manifest, iOS Info.plist and Supabase redirect URLs.
+  The router ignores that link, and the profile screen starts from the name Google gives.
+- Apple only shows "coming soon". Phone numbers are Bangladesh mobiles (+880 01[3-9]...), typed with or without
+  the 0, sent as +8801XXXXXXXXX. Phone codes need an SMS provider in Supabase; without one the app says
+  "phone codes are not available yet" and email keeps working. Setup steps: docs/LOGIN_SETUP.md.
+- The Apple and Google marks are drawn in code; Google's four brand colours live in tokens.dart.

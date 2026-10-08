@@ -22,6 +22,8 @@ enum AppIcons {
   arrowUpRight,
   arrowDownLeft,
   sparkle,
+  phone,
+  mail,
 }
 
 /// Chunky icon drawn on a 24 x 24 grid with round caps and joins.
@@ -172,6 +174,12 @@ class _IconPainter extends CustomPainter {
       case AppIcons.arrowDownLeft:
         canvas.drawLine(const Offset(18, 6), const Offset(6, 18), line);
         canvas.drawPath(poly([15.5, 18, 6, 18, 6, 8.5]), line);
+      case AppIcons.phone:
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(7, 3, 10, 18), const Radius.circular(3)), line);
+        canvas.drawLine(const Offset(10.8, 17.6), const Offset(13.2, 17.6), line);
+      case AppIcons.mail:
+        canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(3.5, 5.5, 17, 13), const Radius.circular(3.5)), line);
+        canvas.drawPath(poly([4.5, 7.5, 12, 13.2, 19.5, 7.5]), line);
       case AppIcons.sparkle:
         // Four point star with concave sides, filled.
         final star = Path()

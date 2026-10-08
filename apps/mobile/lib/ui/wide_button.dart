@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 import 'app_icon.dart';
+import 'brand_glyph.dart';
 import 'pressable_scale.dart';
 
-enum WideButtonVariant { primary, photo, upload, next, done, home, another, start, login }
+enum WideButtonVariant { primary, photo, upload, next, done, home, another, start, login, apple, google, send }
 
 class _Look {
-  const _Look(this.bg, this.fg, this.circle, this.glyph, this.icon);
+  const _Look(this.bg, this.fg, this.circle, this.glyph, this.icon, {this.brand});
   final Color bg;
   final Color fg;
   final Color circle;
   final Color glyph;
   final AppIcons icon;
+
+  /// A brand mark in the circle instead of an icon (the sign-in buttons).
+  final Brand? brand;
 }
 
 const _looks = {
@@ -35,6 +39,12 @@ const _looks = {
       _Look(AppColors.lavender, AppColors.white, AppColors.lime, AppColors.lavender, AppIcons.chevronRight),
   WideButtonVariant.login:
       _Look(AppColors.lime, AppColors.navy, AppColors.lavender, AppColors.white, AppIcons.chevronRight),
+  WideButtonVariant.apple:
+      _Look(AppColors.navy, AppColors.white, AppColors.lime, AppColors.navy, AppIcons.plus, brand: Brand.apple),
+  WideButtonVariant.google:
+      _Look(AppColors.white, AppColors.navy, AppColors.cream, AppColors.navy, AppIcons.plus, brand: Brand.google),
+  WideButtonVariant.send:
+      _Look(AppColors.lavender, AppColors.white, AppColors.lime, AppColors.lavender, AppIcons.chevronRight),
 };
 
 /// Full width, 64 tall, label left and a 40 circle icon button on the right.
@@ -89,7 +99,9 @@ class WideButton extends StatelessWidget {
                       height: AppSize.icon / 2,
                       child: CircularProgressIndicator(strokeWidth: 3, color: glyph),
                     )
-                  : AppIcon(look.icon, size: AppSize.icon - AppSpacing.s8, color: glyph, stroke: 3),
+                  : look.brand != null
+                      ? BrandGlyph(look.brand!, size: AppSize.icon - AppSpacing.s4, color: glyph)
+                      : AppIcon(look.icon, size: AppSize.icon - AppSpacing.s8, color: glyph, stroke: 3),
             ),
           ],
         ),

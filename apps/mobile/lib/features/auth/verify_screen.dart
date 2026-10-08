@@ -11,8 +11,11 @@ import 'auth_repository.dart';
 
 /// Login step 2: type the 6 digit code. Signing in makes the router redirect on its own.
 class VerifyScreen extends ConsumerStatefulWidget {
-  const VerifyScreen({super.key, required this.email});
-  final String email;
+  const VerifyScreen({super.key, required this.contact, this.isPhone = false});
+
+  /// The email address, or the phone number as "+8801XXXXXXXXX".
+  final String contact;
+  final bool isPhone;
 
   @override
   ConsumerState<VerifyScreen> createState() => _VerifyScreenState();
@@ -57,7 +60,8 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).verifyCode(widget.email, value);
+      final auth = ref.read(authRepositoryProvider);
+      await (widget.isPhone ? auth.verifyPhoneCode(widget.contact, value) : auth.verifyCode(widget.contact, value));
       // The session stream fires and the router redirects to the profile or home.
     } on AuthFailure catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -68,7 +72,8 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
 
   Future<void> _resend() async {
     try {
-      await ref.read(authRepositoryProvider).sendCode(widget.email);
+      final auth = ref.read(authRepositoryProvider);
+      await (widget.isPhone ? auth.sendPhoneCode(widget.contact) : auth.sendCode(widget.contact));
       _startCooldown();
       if (mounted) setState(() => _error = null);
     } on AuthFailure catch (e) {
@@ -89,9 +94,9 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
       ),
       gap: AppSpacing.s24,
       children: [
-        Text('check your email.', style: AppType.display36),
+        Text(widget.isPhone ? 'check your texts.' : 'check your email.', style: AppType.display36),
         Text(
-          'We sent a 6 digit code to ${widget.email}.',
+          'We sent a 6 digit code to ${widget.contact}.',
           style: AppType.body16.copyWith(color: AppColors.slate),
         ),
         CodeField(

@@ -68,7 +68,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final email = ref.watch(authRepositoryProvider).email;
+    final account = ref.watch(authRepositoryProvider);
+    final email = account.email ?? account.phone;
     final name = _name.text.trim();
     return ScreenFrame(
       reserveBottom: true,

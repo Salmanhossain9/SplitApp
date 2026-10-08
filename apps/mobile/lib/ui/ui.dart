@@ -3,6 +3,7 @@ export 'app_bottom_sheet.dart';
 export 'app_icon.dart';
 export 'avatar.dart';
 export 'bottom_nav.dart';
+export 'brand_glyph.dart';
 export 'cards.dart';
 export 'code_field.dart';
 export 'confetti_sparkle.dart';
