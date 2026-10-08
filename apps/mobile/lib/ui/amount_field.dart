@@ -132,10 +132,11 @@ class AmountField extends StatelessWidget {
 
 /// Rate input in percent, reports basis points (5.9 -> 590).
 class RateField extends StatelessWidget {
-  const RateField({super.key, required this.rateBp, required this.onChanged});
+  const RateField({super.key, required this.rateBp, required this.onChanged, this.enabled = true});
 
   final int rateBp;
   final ValueChanged<int> onChanged;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) => _PillNumberField(
@@ -146,6 +147,7 @@ class RateField extends StatelessWidget {
         width: AppDims.rateFieldWidth,
         height: AppDims.rateFieldHeight,
         horizontalPadding: AppSpacing.s8,
+        enabled: enabled,
       );
 }
 
@@ -158,8 +160,10 @@ class ChargeRow extends StatelessWidget {
     required this.amount,
     required this.onRateChanged,
     required this.amountBuilder,
+    this.enabled = true,
   });
 
+  final bool enabled;
   final String label;
   final int rateBp;
   final int amount;
@@ -173,7 +177,7 @@ class ChargeRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: AppType.body16)),
-        RateField(rateBp: rateBp, onChanged: onRateChanged),
+        RateField(rateBp: rateBp, onChanged: onRateChanged, enabled: enabled),
         const SizedBox(width: AppSpacing.s8),
         Text('%', style: AppType.body16.copyWith(color: AppColors.slate)),
         const SizedBox(width: AppSpacing.s12),

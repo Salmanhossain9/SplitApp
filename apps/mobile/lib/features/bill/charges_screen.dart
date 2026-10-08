@@ -51,7 +51,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
       final count = d.participants.isEmpty ? 1 : d.participants.length;
       extrasPill = '${formatTaka(d.extras ~/ count)} extra each';
     } else {
-      extrasPill = 'extras follow the order';
+      extrasPill = 'on their own food';
     }
 
     return ScreenFrame(
@@ -91,8 +91,8 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
               const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: OptionTile(
-                  title: 'by what they ate',
-                  subtitle: 'bigger order, bigger share',
+                  title: 'separate',
+                  subtitle: 'vat on their own food',
                   on: d.extrasMode == ExtrasMode.byItems,
                   onTap: () => n.setExtrasMode(ExtrasMode.byItems),
                 ),
@@ -102,8 +102,8 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
         else
           Text(
             d.splitMode == SplitMode.equally
-                ? 'you are splitting the whole bill equally, so the extras are already inside every share.'
-                : 'you typed each share yourself, so the extras are already inside them.',
+                ? 'you are splitting the whole bill equally, so the vat and service are shared equally too.'
+                : 'you typed each share yourself, so the vat and service are already inside them and the rates are locked.',
             style: AppType.label14.copyWith(color: AppColors.slate),
           ),
         Container(
@@ -117,6 +117,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
                 label: 'VAT',
                 rateBp: d.vatRateBp,
                 amount: d.vatAmount,
+                enabled: d.splitMode != SplitMode.custom,
                 onRateChanged: n.setVatRate,
                 amountBuilder: (a) => Money(a, style: AppType.body16),
               ),
@@ -125,6 +126,7 @@ class _ChargesScreenState extends ConsumerState<ChargesScreen> {
                 label: 'Service charge',
                 rateBp: d.serviceRateBp,
                 amount: d.serviceAmount,
+                enabled: d.splitMode != SplitMode.custom,
                 onRateChanged: n.setServiceRate,
                 amountBuilder: (a) => Money(a, style: AppType.body16),
               ),

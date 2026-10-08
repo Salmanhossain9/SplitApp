@@ -118,7 +118,7 @@ final gallerySections = <GallerySection>[
           Row(children: const [
             Expanded(child: OptionTile(title: 'equally', subtitle: 'same extra for everyone', on: true)),
             SizedBox(width: AppSpacing.s12),
-            Expanded(child: OptionTile(title: 'by what they ate', subtitle: 'bigger order, bigger share', on: false)),
+            Expanded(child: OptionTile(title: 'separate', subtitle: 'vat on their own food', on: false)),
           ]),
         ],
       )),

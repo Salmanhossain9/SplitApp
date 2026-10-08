@@ -122,3 +122,10 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   runs those widgets at 320-411 dp and font scale up to 1.3.
 - VAT on that receipt (138.20) excludes the 30 Tk water, so it is 4.95% of the items. The app stores a
   rate, so "ours" can differ from the receipt by a few taka. The person adjusts the rate.
+
+## VAT and service screen wording
+- "by what they ate" is now "separate": VAT and service are worked out on the food each person had
+  (same maths as before; stored as `by_items`). "equally" splits the total VAT and service evenly.
+- Equally-for-everyone and typed-share modes offer no choice. In typed-share mode the rate fields are
+  locked, because changing a rate after the person typed the shares made the bills stop adding up.
+- Open question: with "equally", someone who ate nothing still pays an equal share of VAT.
