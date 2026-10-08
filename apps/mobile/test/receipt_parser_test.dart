@@ -362,6 +362,93 @@ void main() {
       expect(r.subtotal, 279400);
     });
   });
+
+  group('price x quantity rows and VAT already inside the total (CafeNjoy receipt)', () {
+    // One dish printed as "unit price x qty" with a second line holding the size and the line total.
+    // The x is often read as a multiplication sign. VAT 26.19 is already inside the 550.
+    List<OcrLine> cafe(String times) => [
+          for (final (i, t) in [
+            'CAFENJOY',
+            'Panir Pump Mor,Namapara,khilkhet-1229',
+            'Mobile: 01811545559',
+            'Customer Type: Takeaway',
+            'http://cafenjoybd.com/',
+            'Mushak-6.3',
+            'Date: 23-08-2026',
+            'Time: 07:35 PM',
+            'Item Total',
+            'Jalapeno Pizza (Chicken) 550.00 $times 1',
+            'SMALL 550.00 ৳',
+            'Subtotal 550.00 ৳',
+            'SD 0.00 ৳',
+            'Total Discount(%) 0.00 ৳',
+            'Vat (5%) 26.19 ৳',
+            'Grand Total 550.00 ৳',
+            'Customer Paid 550.00 ৳',
+            'Cash Payment 550.00 ৳',
+            'Change Due 0.00 ৳',
+            'Total payment 550.00৳',
+            'Bill To: Walkin',
+            'Order No.: SA-2308',
+            'Payment Status: Paid',
+          ].indexed)
+            line(t, i),
+        ];
+
+    for (final times in ['x', '×', 'X']) {
+      test('one dish at 550, not 1 taka ("$times")', () {
+        final r = ReceiptParser.parse(cafe(times));
+        expect(summary(r), [
+          ['Jalapeno Pizza (Chicken) Small', 1, 55000],
+        ]);
+        expect(r.subtotal, 55000);
+        expect(r.total, 55000);
+        expect(r.place, 'Cafenjoy');
+      });
+    }
+
+    test('VAT that is already inside the total is not added again', () {
+      final r = ReceiptParser.parse(cafe('x'));
+      expect(r.vat, isNull);
+      expect(r.service, isNull);
+    });
+
+    test('unit price x quantity: 2 at 275 is 550 for the line', () {
+      final r = ReceiptParser.parse([
+        line('Item Total', 0),
+        line('Cold Coffee 275.00 x 2', 1),
+        line('Burger 300.00 × 1', 2),
+        line('Grand Total 850.00', 3),
+      ]);
+      expect(summary(r), [
+        ['Cold Coffee', 2, 27500],
+        ['Burger', 1, 30000],
+      ]);
+    });
+
+    test('two different dishes at the same price are not merged', () {
+      final r = ReceiptParser.parse([
+        line('Item Total', 0),
+        line('Coke 90.00', 1),
+        line('Sprite 90.00', 2),
+        line('Total 180.00', 3),
+      ]);
+      expect(summary(r), [
+        ['Coke', 1, 9000],
+        ['Sprite', 1, 9000],
+      ]);
+    });
+
+    test('a discount row is not the receipt total', () {
+      final r = ReceiptParser.parse([
+        line('Item Total', 0),
+        line('Pizza 500.00', 1),
+        line('Total Discount(%) 50.00', 2),
+        line('Grand Total 450.00', 3),
+      ]);
+      expect(r.total, 45000);
+    });
+  });
 }
 
 extension on OcrLine {

@@ -160,3 +160,12 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   tighter gaps) so the three recap tiles sit above the two buttons without scrolling. The tiles are one
   fixed height (scaled with the font), one line per label. `ScreenFrame.bottomHeight` makes the body
   scroll clear of a floating bottom taller than one button; before, two buttons covered the tiles.
+
+## CafeNjoy receipt
+- "550.00 x 1": a decimal unit price, then the quantity, is read as a line total of price times quantity.
+  The multiplication sign (×) that OCR often gives for the x counts as an x.
+- A second row that only names the size and repeats the line total ("SMALL 550.00") joins the dish above it,
+  but only under a "unit x qty" row, so two different dishes at the same price stay two items.
+- "Total Discount(%)" is a discount row, not the receipt total.
+- When the printed total equals the items, a VAT or service line is only showing how much of the total is
+  tax, so the scan sets those rates to zero instead of adding them on top.

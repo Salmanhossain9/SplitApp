@@ -56,6 +56,7 @@ class ReceiptParser {
   static final _grand = RegExp(r'grand|net|gross|remaining|payable|amount\s*due', caseSensitive: false);
   static final _vat = RegExp(r'\bvat\b|v\.a\.t|\btax\b|\bgst\b|\bcgst\b|\bsgst\b', caseSensitive: false);
   static final _service = RegExp(r'service|\bsvc\b|\bs\.?\s*charge\b|\bsc\b', caseSensitive: false);
+  static final _discount = RegExp(r'discount|\bdisc\b|promo|coupon|\boff\b');
   static final _adjust = RegExp(r'discount|\bdisc\b|promo|coupon|round|adjust|\boff\b|\btip\b|delivery', caseSensitive: false);
   static final _date = RegExp(r'\b\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}:\d{2}\b');
 
@@ -99,11 +100,20 @@ class ReceiptParser {
     }
 
     final firstItemIndex = itemRows.isEmpty ? parsed.length : itemRows.first.index;
+    var vat = sum(_Kind.vat);
+    var service = sum(_Kind.service);
+    final itemsSum = items.fold<int>(0, (a, i) => a + i.qty * i.unitPrice);
+    if (total != null && itemsSum > 0 && itemsSum == total) {
+      // The printed total equals the items, so the VAT line only shows how much of it is tax.
+      // Adding it on top would charge it twice.
+      vat = null;
+      service = null;
+    }
     return ScanResult(
       place: _place(parsed.where((r) => r.index < firstItemIndex).toList()),
       items: items,
-      vat: sum(_Kind.vat),
-      service: sum(_Kind.service),
+      vat: vat,
+      service: service,
       total: total,
     );
   }
@@ -144,7 +154,7 @@ class ReceiptParser {
   }
 
   static String _normalize(String raw) {
-    var s = raw;
+    var s = raw.replaceAll(RegExp(r'[×✕✖]'), 'x');
     for (var i = 0; i < 10; i++) {
       s = s.replaceAll(_bangla[i], '$i');
     }
@@ -174,8 +184,23 @@ class ReceiptParser {
 
     // Quantity written next to the name: "3 x 90", "x3", "3x", "qty 3".
     int? markerQty;
+    // "550.00 x 2": the unit price first, then the quantity (a decimal price, a whole quantity).
+    // The row's amount becomes the line total, 1100.00, so it reads like any other row.
+    final unitTimes = RegExp(r'(\d+\.\d{1,2})\s*x\s*(\d{1,3})\b(?![.,]?\d)', caseSensitive: false).firstMatch(text);
+    if (unitTimes != null) {
+      final unit = parsePoisha(unitTimes.group(1)!);
+      final qty = int.parse(unitTimes.group(2)!);
+      if (unit != null && qty >= 1) {
+        final line = unit * qty;
+        text = text.replaceRange(unitTimes.start, unitTimes.end, ' ${line ~/ 100}.${(line % 100).toString().padLeft(2, '0')} ');
+        markerQty = qty;
+        row.hasUnitTimes = true;
+      }
+    }
     final qtyRate = RegExp(r'(\d{1,3})\s*[xX@]\s*(\d+(?:\.\d+)?)(?=\s+\d)').firstMatch(text);
-    if (qtyRate != null) {
+    if (markerQty != null) {
+      // Already read as "unit x qty".
+    } else if (qtyRate != null) {
       markerQty = int.tryParse(qtyRate.group(1)!);
       text = text.replaceRange(qtyRate.start, qtyRate.end, ' ');
     } else {
@@ -220,6 +245,8 @@ class ReceiptParser {
       row.kind = _Kind.header;
     } else if (spacedHeading || row.label.contains(':')) {
       row.kind = _Kind.ignored; // "Table: Outdoor_3", "Waiter:Rayhan", "G u e s t B i l l"
+    } else if (_discount.hasMatch(l) && !_grand.hasMatch(l)) {
+      row.kind = _Kind.adjust; // "Total Discount(%)" is not the total
     } else if (_subtotal.hasMatch(l)) {
       row.kind = _Kind.subtotal;
     } else if (_total.hasMatch(l) && _notATotal.hasMatch(l)) {
@@ -247,6 +274,19 @@ class ReceiptParser {
   static void _mergeSplitRows(List<_Row> rows) {
     for (var i = 0; i + 1 < rows.length; i++) {
       final a = rows[i], b = rows[i + 1];
+      // "Jalapeno Pizza 550.00 x 1" then "SMALL 550.00": the second row only names the size and
+      // repeats the line total. Only after a "unit x qty" row, so two dishes at one price stay two.
+      if (a.kind == _Kind.item &&
+          a.hasUnitTimes &&
+          b.kind == _Kind.item &&
+          b.amount != null &&
+          b.amount == a.amount &&
+          b.label.split(' ').length <= 2 &&
+          !RegExp(r'^\d{1,2}\s+[A-Za-z]').hasMatch(b.label)) {
+        a.label = '${a.label} ${b.label}';
+        b.kind = _Kind.merged;
+        continue;
+      }
       // "1 Chocolate Brownie Cream" then ".REGULAR 499.00 499.00": a printed name that wrapped,
       // its second half carrying the price. The first half starts with the quantity.
       final aIsQtyName = a.kind == _Kind.text &&
@@ -378,6 +418,7 @@ class _Row {
   String label = '';
   int letters = 0;
   int? markerQty;
+  bool hasUnitTimes = false; // printed as "unit price x qty"
   bool continuation = false; // starts like the tail of a wrapped name (".REGULAR", "cast")
   List<({int poisha, bool decimal})> values = const [];
   int? amount;
