@@ -136,6 +136,16 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
     ];
   }
 
+  /// Label left, pill right, both on one line: each shrinks before it would wrap or overflow.
+  Widget _headRow(Widget label, Widget pill) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: label)),
+          const SizedBox(width: AppSpacing.s8),
+          Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: pill)),
+        ],
+      );
+
   List<Widget> _equallyBody(DraftBill d, DraftBillNotifier n) {
     final sharing = d.sharing;
     final each = sharing.isEmpty ? 0 : splitEqually(d.total, sharing.length).first;
@@ -146,14 +156,12 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(child: Text('total bill', style: AppType.title24)),
-                const AppPill('incl. vat and service', background: AppColors.lime),
-              ],
+            _headRow(
+              Text('total bill', maxLines: 1, style: AppType.title24),
+              AppPill('incl. vat and service', background: AppColors.lime, style: AppType.micro11),
             ),
             const SizedBox(height: AppSpacing.s8),
-            Money(d.total, style: AppType.amount44, lightDecimals: true, fit: true),
+            Money(d.total, style: AppType.display36, lightDecimals: true, fit: true),
           ],
         ),
       ),
@@ -191,14 +199,12 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(child: Text('each pays', style: AppType.title24.copyWith(color: AppColors.white))),
-                AppPill('${formatTaka(d.total)} ÷ ${sharing.length}', background: AppColors.lime),
-              ],
+            _headRow(
+              Text('each pays', maxLines: 1, style: AppType.title24.copyWith(color: AppColors.white)),
+              AppPill('${formatTaka(d.total)} ÷ ${sharing.length}', background: AppColors.lime, style: AppType.micro11),
             ),
             const SizedBox(height: AppSpacing.s8),
-            Money(each, style: AppType.amount44, color: AppColors.white, lightDecimals: true, fit: true),
+            Money(each, style: AppType.display36, color: AppColors.white, lightDecimals: true, fit: true),
           ],
         ),
       ),

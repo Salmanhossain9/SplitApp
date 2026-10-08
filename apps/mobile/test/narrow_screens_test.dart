@@ -98,6 +98,13 @@ void main() {
     }
     testWidgets('claim equally, $tag', (tester) async {
       await flow(tester, w, h, scale, route: '/bill/draft/claim', setup: (n, _) => n.setSplitMode(SplitMode.equally));
+      // "total bill" is on one line, with its pill beside it, and the amount is on one line too.
+      expect(tester.getSize(find.text('total bill')).height, lessThan(40), reason: '"total bill" wrapped');
+      final label = tester.getRect(find.text('total bill'));
+      final pill = tester.getRect(find.text('incl. vat and service'));
+      expect(label.right, lessThanOrEqualTo(pill.left));
+      expect((label.center.dy - pill.center.dy).abs(), lessThan(24), reason: 'the pill dropped below the label');
+      expect(pill.right, lessThanOrEqualTo(w - 24 + 1));
       await finish(tester);
     });
     testWidgets('claim custom, $tag', (tester) async {
