@@ -53,3 +53,8 @@ build/
 
 # Flutter golden failure images
 apps/mobile/test/failures/
+
+# Release signing: never commit these
+key.properties
+*.jks
+*.keystore
