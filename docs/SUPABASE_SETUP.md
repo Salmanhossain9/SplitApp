@@ -42,15 +42,21 @@ This also turns on the security rules (Row Level Security), so each person only 
 ## 4. Set up login by email code
 1. **Authentication → Sign In / Providers → Email**: make sure it is **enabled**. Check
    **Email OTP Length = 6** (the app expects 6 digits).
-2. **Authentication → Emails → Templates**. Edit **both** *Magic link* and *Confirm signup*:
+2. **Set up your own email sender first.** Supabase locks the email templates until custom SMTP
+   is on (the page says "Set up custom SMTP to edit templates"), and the default template sends a
+   link, not a code. Quickest free option is your Gmail:
+   - Google Account → Security: turn on 2-Step Verification, then open
+     https://myaccount.google.com/apppasswords and create an app password (16 letters).
+   - Supabase **Authentication → Emails → SMTP Settings** (or the "Set up SMTP" button): enable,
+     sender email = your Gmail, sender name `SplitUp`, host `smtp.gmail.com`, port `465`,
+     username = your Gmail, password = the app password.
+   - Gmail is fine for testing and small groups. For many users use Brevo (free, 300/day) or
+     Resend (free, needs your own domain) on the same screen.
+3. **Authentication → Emails → Templates**. Edit **both** *Magic link* and *Confirm sign up*
+   (use the **Source** tab):
    - Subject: `Your SplitUp code`
    - Body: paste the contents of `supabase/templates/code.html` (it shows `{{ .Token }}`, the 6 digit code).
-   Save each one.
-3. **Email delivery.** Supabase's built-in email sender is only for testing: it is limited to a
-   couple of emails per hour and only delivers to people in your Supabase organization (your own
-   email works). For real friends, set up a free custom sender in **Authentication → SMTP
-   Settings**, for example Brevo (free, 300 emails/day, verify one sender address) or Resend
-   (free, needs your own domain).
+   Save each one. A new email address gets *Confirm sign up*, a returning one gets *Magic link*.
 
 ## 5. Deploy the three functions
 Open a terminal in the repo root (VS Code terminal is fine). You need Node.js installed.
