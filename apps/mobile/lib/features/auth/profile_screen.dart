@@ -30,6 +30,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  /// Network problems get the friendly line; anything else shows the server's own reason so a
+  /// wrong setup (missing table, policy) is visible instead of blamed on the connection.
+  String _saveMessage(Object e) {
+    final text = e.toString();
+    final lower = text.toLowerCase();
+    if (lower.contains('socket') || lower.contains('failed host') || lower.contains('network')) {
+      return 'no connection. check your internet and try again.';
+    }
+    return 'could not save your profile: ${text.replaceAll('PostgrestException', '').trim()}';
+  }
+
   Future<void> _save() async {
     setState(() {
       _busy = true;
@@ -42,8 +53,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             bkash: _bkash.text,
           );
       // profileProvider now has a value, so the router moves on to home.
-    } catch (_) {
-      if (mounted) setState(() => _error = 'could not save your profile. check your connection.');
+    } catch (e) {
+      debugPrint('profile save failed: $e');
+      if (mounted) setState(() => _error = _saveMessage(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
