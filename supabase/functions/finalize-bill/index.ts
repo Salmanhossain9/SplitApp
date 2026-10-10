@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     });
     if (error) return fail(409, "finalize_failed", error.message);
 
-    const base = (Deno.env.get("SHARE_BASE_URL") ?? "https://splitup.app").replace(/\/$/, "");
+    const base = (Deno.env.get("SHARE_BASE_URL") ?? "https://splitbit.app").replace(/\/$/, "");
     return json({
       bill_id: body.bill_id,
       total: plan.total,

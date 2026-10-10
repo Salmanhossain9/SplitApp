@@ -75,7 +75,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/verify',
         builder: (_, state) => VerifyScreen(
           contact: state.uri.queryParameters['contact'] ?? '',
-          isPhone: state.uri.queryParameters['kind'] == 'phone',
         ),
       ),
       GoRoute(path: '/auth/profile', builder: (_, _) => const ProfileScreen()),

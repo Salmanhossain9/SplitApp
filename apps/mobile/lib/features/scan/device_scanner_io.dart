@@ -16,7 +16,7 @@ ReceiptScanner createDeviceScanner() => MlKitReceiptScanner();
 class MlKitReceiptScanner implements ReceiptScanner {
   @override
   Future<ScanResult> scan(Uint8List bytes) async {
-    final dir = await Directory.systemTemp.createTemp('splitup_receipt_');
+    final dir = await Directory.systemTemp.createTemp('splitbit_receipt_');
     final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
     try {
       final file = File('${dir.path}/receipt.jpg');

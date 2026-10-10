@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:splitup/theme/tokens.dart';
+import 'package:splitbit/theme/tokens.dart';
 
 void main() {
   test('text colour follows the pairing rules', () {

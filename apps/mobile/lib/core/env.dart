@@ -3,7 +3,7 @@
 class Env {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-  static const shareBaseUrl = String.fromEnvironment('SHARE_BASE_URL', defaultValue: 'https://splitup.app');
+  static const shareBaseUrl = String.fromEnvironment('SHARE_BASE_URL', defaultValue: 'https://splitbit.app');
 
   /// Set with --dart-define=FIREBASE_ENABLED=true once google-services.json is in place.
   static const firebaseEnabled = bool.fromEnvironment('FIREBASE_ENABLED');

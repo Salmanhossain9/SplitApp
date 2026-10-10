@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:splitup/features/bill/draft_bill.dart' show hostId;
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/features/groups/groups_provider.dart';
-import 'package:splitup/features/groups/groups_repository.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
+import 'package:splitbit/features/bill/draft_bill.dart' show hostId;
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/features/groups/groups_provider.dart';
+import 'package:splitbit/features/groups/groups_repository.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
 
 /// The vat and service screen in each way of splitting: what is offered, and what each person pays.
 Future<(ProviderContainer, DraftBillNotifier, Map<String, String>)> openCharges(

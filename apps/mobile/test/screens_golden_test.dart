@@ -5,14 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/core/person.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/features/groups/groups_provider.dart';
-import 'package:splitup/features/groups/groups_repository.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/settle_row.dart' show SettleMethod;
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/core/person.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/features/groups/groups_provider.dart';
+import 'package:splitbit/features/groups/groups_repository.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/settle_row.dart' show SettleMethod;
 
 /// Whole-screen goldens at the 390 x 844 design frame, driven by the Chillox sample.
 Future<void> shot(

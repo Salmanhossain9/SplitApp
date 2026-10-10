@@ -295,4 +295,29 @@ insert into profiles (id, name, email) values (:d, 'Dave', 'fake@spoof.test');
 select t.ok((select email from profiles where id = :d) = 'dave@x.test', 'client-supplied email is replaced by the auth email');
 reset role;
 
+-- ---------------------------------------------------------------------------
+-- Account deletion.
+-- ---------------------------------------------------------------------------
+select t.as_user(:a);
+select t.throws('select delete_account_data(''00000000-0000-0000-0000-00000000000a'')', 'permission denied', 'a signed-in user cannot call delete_account_data directly');
+reset role;
+select t.as_anon();
+select t.throws('select delete_account_data(''00000000-0000-0000-0000-00000000000a'')', 'permission denied', 'anon cannot call delete_account_data');
+reset role;
+select t.ok((select count(*) from bills where created_by = :a) > 0, 'precondition: a hosts bills');
+select t.as_service();
+select delete_account_data(:a);
+reset role;
+select t.ok((select count(*) from bills where created_by = :a) = 0, 'the hosted bills are gone');
+select t.ok((select count(*) from items where bill_id in (:bill, :bill2, :bill4)) = 0, 'and their items, whatever the bill status');
+select t.ok((select count(*) from settlements s where not exists (select 1 from bills b where b.id = s.bill_id)) = 0, 'no settlement is left without its bill');
+select t.ok((select count(*) from profiles where id = :a) = 0, 'the profile is gone');
+select t.ok((select count(*) from groups where owner_id = :a) = 0 and (select count(*) from friends where owner_id = :a) = 0, 'their groups and friends are gone');
+select t.ok((select count(*) from bill_participants where user_id = :a) = 0, 'nobody still points at the deleted person');
+select t.ok((select count(*) from profiles where id = :b) = 1, 'other people are untouched');
+select t.as_service();
+select delete_account_data(:a);
+select t.ok(true, 'running it twice is harmless');
+reset role;
+
 drop schema t cascade;

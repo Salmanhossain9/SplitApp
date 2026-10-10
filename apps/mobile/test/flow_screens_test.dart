@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/ui.dart';
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/ui.dart';
 
 Future<ProviderContainer> pumpApp(
   WidgetTester tester, {

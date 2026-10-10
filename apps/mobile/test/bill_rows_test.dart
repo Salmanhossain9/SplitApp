@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:splitup/core/ids.dart';
-import 'package:splitup/features/bill/bill_repository.dart';
-import 'package:splitup/features/bill/bill_rows.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/ui/settle_row.dart' show SettleMethod;
+import 'package:splitbit/core/ids.dart';
+import 'package:splitbit/features/bill/bill_repository.dart';
+import 'package:splitbit/features/bill/bill_rows.dart';
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/ui/settle_row.dart' show SettleMethod;
 
 const hostUser = '00000000-0000-0000-0000-00000000000a';
 

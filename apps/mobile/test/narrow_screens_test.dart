@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:splitup/features/bill/draft_bill.dart' show hostId;
-import 'package:splitup/features/scan/scan_models.dart';
-import 'package:splitup/ui/cards.dart' show TabCard;
-import 'package:splitup/theme/tokens.dart';
-import 'package:splitup/ui/code_field.dart';
-import 'package:splitup/ui/ui.dart' show AppBackButton, RecapTile, SettleRow, Logo;
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/features/groups/groups_provider.dart';
-import 'package:splitup/features/groups/groups_repository.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/settle_row.dart' show SettleMethod;
+import 'package:splitbit/features/bill/draft_bill.dart' show hostId;
+import 'package:splitbit/features/scan/scan_models.dart';
+import 'package:splitbit/ui/cards.dart' show TabCard;
+import 'package:splitbit/theme/tokens.dart';
+import 'package:splitbit/ui/code_field.dart';
+import 'package:splitbit/ui/ui.dart' show AppBackButton, RecapTile, SettleRow, Logo;
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/features/groups/groups_provider.dart';
+import 'package:splitbit/features/groups/groups_repository.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/settle_row.dart' show SettleMethod;
 
 /// Every screen of the bill flow on small phones: 320 dp is a Galaxy with a larger display size.
 /// Nothing may overflow, whatever the font size.

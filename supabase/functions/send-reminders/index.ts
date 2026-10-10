@@ -46,7 +46,7 @@ async function remind(billId: string, participantId: string, hostId: string | nu
   } else if (person.friend_id) {
     const { data: friend } = await db.from("friends").select("phone").eq("id", person.friend_id).maybeSingle();
     if (friend?.phone) {
-      const base = (Deno.env.get("SHARE_BASE_URL") ?? "https://splitup.app").replace(/\/$/, "");
+      const base = (Deno.env.get("SHARE_BASE_URL") ?? "https://splitbit.app").replace(/\/$/, "");
       const link = bill.share_token ? ` ${base}/s/${bill.share_token}` : "";
       whatsapp = whatsappLink(friend.phone, `${text.body}${link}`);
       if (whatsapp) delivery = "whatsapp";

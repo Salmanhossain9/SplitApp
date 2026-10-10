@@ -1,9 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/phone.dart';
+import '../../core/legal.dart';
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
 import 'auth_providers.dart';
@@ -13,11 +14,8 @@ final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
 enum LoginTab { logIn, signUp }
 
-enum Contact { email, phone }
-
-/// The one login screen: Google, Apple (not yet), or a 6 digit code to an email (the default) or a
-/// phone. Logging in and signing up are the same passwordless thing, so the two tabs only change
-/// the wording.
+/// The one login screen: Google, Apple (not yet), or a 6 digit code to an email. Logging in and
+/// signing up are the same passwordless thing, so the two tabs only change the wording.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -27,23 +25,28 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
-  final _phone = TextEditingController();
   LoginTab _tab = LoginTab.logIn;
-  Contact _contact = Contact.email;
   bool _busy = false;
   bool _googleBusy = false;
   String? _error;
   String? _notice;
 
+  late final _termsTap = TapGestureRecognizer()..onTap = () => _open(termsUrl);
+  late final _privacyTap = TapGestureRecognizer()..onTap = () => _open(privacyPolicyUrl);
+
+  Future<void> _open(String url) async {
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
   @override
   void dispose() {
+    _termsTap.dispose();
+    _privacyTap.dispose();
     _email.dispose();
-    _phone.dispose();
     super.dispose();
   }
 
-  String? get _phoneE164 => bdMobileE164(_phone.text);
-  bool get _valid => _contact == Contact.email ? _emailPattern.hasMatch(_email.text.trim()) : _phoneE164 != null;
+  bool get _valid => _emailPattern.hasMatch(_email.text.trim());
 
   void _edited() => setState(() {
         _error = null;
@@ -57,15 +60,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     final auth = ref.read(authRepositoryProvider);
     try {
-      if (_contact == Contact.email) {
-        final email = _email.text.trim();
-        await auth.sendCode(email);
-        if (mounted) context.push('/auth/verify?kind=email&contact=${Uri.encodeQueryComponent(email)}');
-      } else {
-        final phone = _phoneE164!;
-        await auth.sendPhoneCode(phone);
-        if (mounted) context.push('/auth/verify?kind=phone&contact=${Uri.encodeQueryComponent(phone)}');
-      }
+      final email = _email.text.trim();
+      await auth.sendCode(email);
+      if (mounted) context.push('/auth/verify?contact=${Uri.encodeQueryComponent(email)}');
     } on AuthFailure catch (e) {
       if (mounted) setState(() => _error = e.message);
     } finally {
@@ -90,7 +87,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final phone = _contact == Contact.phone;
     return ScreenFrame(
       header: AppTopBar(
         trailing: const Logo(),
@@ -133,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           // Not built yet: it says so instead of doing nothing.
           onPressed: () => setState(() {
             _error = null;
-            _notice = 'sign in with Apple is coming soon. use google or a code for now.';
+            _notice = 'sign in with Apple is coming soon. use google or an email code for now.';
           }),
         ),
         WideButton(
@@ -147,7 +143,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const Expanded(child: _Rule()),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
-              child: Text('or use your phone or email', style: AppType.micro12.copyWith(color: AppColors.slate)),
+              child: Text('or use your email', style: AppType.micro12.copyWith(color: AppColors.slate)),
             ),
             const Expanded(child: _Rule()),
           ],
@@ -159,18 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ContactSwitch(
-                selected: _contact,
-                onChanged: (c) => setState(() {
-                  _contact = c;
-                  _error = null;
-                }),
-              ),
-              const SizedBox(height: AppSpacing.s12),
-              if (phone)
-                _PhoneField(controller: _phone, onChanged: (_) => _edited())
-              else
-                AppTextField(
+              AppTextField(
                   background: AppColors.cream,
                   controller: _email,
                   hint: 'you@example.com',
@@ -182,7 +167,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
                 child: Text(
-                  phone ? 'We will text you a 6 digit code.' : 'We will email you a 6 digit code.',
+                  'We will email you a 6 digit code.',
                   style: AppType.micro12.copyWith(color: AppColors.slate),
                 ),
               ),
@@ -198,10 +183,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: _send,
         ),
         Center(
-          child: Text(
-            'By continuing you agree to our terms and privacy policy.',
+          child: Text.rich(
+            TextSpan(
+              style: AppType.micro11.copyWith(color: AppColors.slate),
+              children: [
+                const TextSpan(text: 'By continuing you agree to our '),
+                TextSpan(text: 'terms', recognizer: _termsTap, style: const TextStyle(decoration: TextDecoration.underline)),
+                const TextSpan(text: ' and '),
+                TextSpan(text: 'privacy policy', recognizer: _privacyTap, style: const TextStyle(decoration: TextDecoration.underline)),
+                const TextSpan(text: '.'),
+              ],
+            ),
             textAlign: TextAlign.center,
-            style: AppType.micro11.copyWith(color: AppColors.slate),
           ),
         ),
       ],
@@ -209,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// A thin flat line either side of "or use your phone or email".
+/// A thin flat line either side of "or use your email".
 class _Rule extends StatelessWidget {
   const _Rule();
 
@@ -218,92 +211,4 @@ class _Rule extends StatelessWidget {
         height: AppDims.divider,
         child: ColoredBox(color: AppColors.slate.withValues(alpha: AppOpacity.addFriend)),
       );
-}
-
-/// "phone | email" inside the card: cream pill, the chosen side lavender with its icon.
-class _ContactSwitch extends StatelessWidget {
-  const _ContactSwitch({required this.selected, required this.onChanged});
-  final Contact selected;
-  final ValueChanged<Contact> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget side(Contact c, AppIcons icon, String label) {
-      final on = selected == c;
-      return Expanded(
-        child: PressableScale(
-          onTap: () => onChanged(c),
-          child: AnimatedContainer(
-            duration: AppMotion.chip,
-            height: AppSize.tabSwitch - AppSpacing.s8,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: on ? AppColors.lavender : AppColors.clear, borderRadius: AppRadius.rFull),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppIcon(icon, size: AppSize.icon - AppSpacing.s8, color: on ? AppColors.white : AppColors.slate, stroke: 2.6),
-                  const SizedBox(width: AppSpacing.s8),
-                  Text(label, style: AppType.body16.copyWith(color: on ? AppColors.white : AppColors.slate)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.s4),
-      decoration: const BoxDecoration(color: AppColors.cream, borderRadius: AppRadius.rFull),
-      child: Row(children: [side(Contact.phone, AppIcons.phone, 'phone'), side(Contact.email, AppIcons.mail, 'email')]),
-    );
-  }
-}
-
-/// "BD +880" and the 10 digits that follow. Typing a leading 0 (01712...) works too.
-class _PhoneField extends StatelessWidget {
-  const _PhoneField({required this.controller, required this.onChanged});
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.s4),
-      decoration: const BoxDecoration(color: AppColors.cream, borderRadius: AppRadius.rFull),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12, vertical: AppSpacing.s12),
-            decoration: const BoxDecoration(color: AppColors.white, borderRadius: AppRadius.rFull),
-            child: Text.rich(
-              TextSpan(children: [
-                TextSpan(text: 'BD ', style: AppType.label14.copyWith(fontWeight: AppFonts.bold)),
-                TextSpan(text: '+880', style: AppType.label14.copyWith(fontWeight: AppFonts.bold)),
-              ]),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s12),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')), LengthLimitingTextInputFormatter(13)],
-              style: AppType.body16,
-              cursorColor: AppColors.lavender,
-              decoration: InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: '1XXX XXXXXX',
-                hintStyle: AppType.body16.copyWith(color: AppColors.slate.withValues(alpha: AppOpacity.awayChip)),
-              ),
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -2,9 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_core/split_core.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/ui/settle_row.dart' show SettleMethod;
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/ui/settle_row.dart' show SettleMethod;
 
 /// Builds the Chillox bill from the spec through the same notifier the screens use.
 (ProviderContainer, DraftBillNotifier, Map<String, String>) chillox() {

@@ -1,10 +1,11 @@
-# Login with Google and with a phone code
+# Login with Google and with an email code
 
 The login screen offers: **continue with Google**, **continue with Apple** (a placeholder for now),
-and **send me a code** by **email** (the default) or **phone**. Email codes already work. Google and
-phone need a one time setup that only you can do, below.
+and **send me a code** to an **email**. Email codes already work. Google needs a one time setup that only
+you can do, below. Phone login was removed for now (SMS costs money and Banglalink numbers were a problem
+elsewhere); the code is easy to bring back when you pick an SMS service.
 
-**Log in and sign up are the same thing.** Nobody sets a password. A new email, phone or Google
+**Log in and sign up are the same thing.** Nobody sets a password. A new email or Google
 account simply creates the account the first time. The two tabs only change the wording.
 
 ---
@@ -47,23 +48,6 @@ signed in. New people then see the profile screen with their Google name already
 If the screen says "google sign-in is not set up yet", step 4 is missing or the Client ID is wrong.
 If the browser shows a *redirect_uri_mismatch* error, the URI in step 3 does not match exactly.
 If the browser finishes but the app does not open, step 5 is missing or you did not rebuild.
-
----
-
-## Phone codes (SMS)
-
-The app is ready: it sends a number as `+8801XXXXXXXXX` and asks for the 6 digit code. Supabase needs
-an SMS service to text it, and that costs money per message.
-
-1. Supabase → **Authentication → Sign In / Providers → Phone** → **Enable**.
-2. Pick an SMS provider (Twilio, MessageBird, Vonage or Textlocal) and paste its account details.
-   Create that account first; it needs credit. Texting Bangladesh numbers has its own rules, such as
-   sender registration, so check the provider's pages for Bangladesh before you pay.
-3. **Free testing without a provider:** in the same Phone settings add **Test phone numbers and OTPs**, for
-   example `+8801712345678=123456`. Typing that number in the app and then `123456` logs in with no SMS.
-
-Until a provider is connected the app shows "phone codes are not available yet. use email or google
-instead." and email keeps working.
 
 ---
 

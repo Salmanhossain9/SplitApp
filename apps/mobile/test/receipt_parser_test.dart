@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:splitup/features/scan/receipt_parser.dart';
-import 'package:splitup/features/scan/scan_models.dart';
+import 'package:splitbit/features/scan/receipt_parser.dart';
+import 'package:splitbit/features/scan/scan_models.dart';
 
 /// Real Tesseract output for rendered receipts (tool/ocr_fixtures). Tesseract stands in for
 /// ML Kit: both give text lines with boxes. "lines" keeps each printed row whole, "split" cuts

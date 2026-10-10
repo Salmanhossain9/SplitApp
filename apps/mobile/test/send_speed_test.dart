@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splitup/features/bill/bill_repository.dart';
-import 'package:splitup/features/bill/bills_provider.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/features/groups/groups_provider.dart';
-import 'package:splitup/features/groups/groups_repository.dart';
-import 'package:splitup/features/share/share_service.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
+import 'package:splitbit/features/bill/bill_repository.dart';
+import 'package:splitbit/features/bill/bills_provider.dart';
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/features/groups/groups_provider.dart';
+import 'package:splitbit/features/groups/groups_repository.dart';
+import 'package:splitbit/features/share/share_service.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
 
 import 'scan_share_test.dart' show FakeShare;
 

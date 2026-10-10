@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'profile.dart';
 
-/// Everything the screens need from login: email code, phone code, Google. Keeping it behind this
+/// Everything the screens need from login: email code, Google. Keeping it behind this
 /// interface keeps the screens free of Supabase.
 abstract class AuthRepository {
   /// Emits the signed-in user id (or null) now and on every change.
@@ -24,13 +24,12 @@ abstract class AuthRepository {
   /// Verifies the code and signs in. Throws [AuthFailure] with a friendly message.
   Future<void> verifyCode(String email, String code);
 
-  /// Texts a 6 digit code to a phone number in the "+8801XXXXXXXXX" form.
-  Future<void> sendPhoneCode(String phone);
-  Future<void> verifyPhoneCode(String phone, String code);
-
   /// Opens Google's sign-in in the browser. The app is signed in when the browser hands back to it.
   Future<void> signInWithGoogle();
   Future<void> signOut();
+
+  /// Deletes the account and everything the person created, then signs out. Throws [AuthFailure].
+  Future<void> deleteAccount();
 
   Future<Profile?> loadProfile();
   Future<Profile> saveProfile(Profile profile);
@@ -98,27 +97,6 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> sendPhoneCode(String phone) async {
-    try {
-      await _client.auth.signInWithOtp(phone: phone.trim(), shouldCreateUser: true);
-    } catch (e) {
-      throw AuthFailure(friendlyAuthMessage(e));
-    }
-  }
-
-  @override
-  Future<void> verifyPhoneCode(String phone, String code) async {
-    try {
-      final res = await _client.auth.verifyOTP(phone: phone.trim(), token: code.trim(), type: OtpType.sms);
-      if (res.session == null) throw const AuthFailure('that code did not work. check it or ask for a new one.');
-    } on AuthFailure {
-      rethrow;
-    } catch (e) {
-      throw AuthFailure(friendlyAuthMessage(e));
-    }
-  }
-
-  @override
   Future<void> signInWithGoogle() async {
     try {
       // Google's page opens in the browser. When it is done the browser opens splitbit://login-callback,
@@ -158,6 +136,21 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<void> signOut() => _client.auth.signOut();
 
   @override
+  Future<void> deleteAccount() async {
+    try {
+      await _client.functions.invoke('delete-account', body: {'confirm': 'delete'});
+    } on FunctionException {
+      throw const AuthFailure('could not delete your account. check your connection and try again.');
+    } catch (e) {
+      throw AuthFailure(friendlyAuthMessage(e));
+    }
+    // The login no longer exists on the server, so only this phone's session is cleared.
+    try {
+      await _client.auth.signOut(scope: SignOutScope.local);
+    } catch (_) {}
+  }
+
+  @override
   Future<Profile?> loadProfile() async {
     final id = userId;
     if (id == null) return null;
@@ -190,7 +183,7 @@ class LocalAuthRepository implements AuthRepository {
   String? get userId => _id;
 
   @override
-  String? get email => 'demo@splitup.app';
+  String? get email => 'demo@splitbit.app';
 
   @override
   String? get phone => null;
@@ -200,12 +193,6 @@ class LocalAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendCode(String email) async {}
-
-  @override
-  Future<void> sendPhoneCode(String phone) async {}
-
-  @override
-  Future<void> verifyPhoneCode(String phone, String code) => verifyCode(phone, code);
 
   @override
   Future<void> signInWithGoogle() async {}
@@ -220,6 +207,12 @@ class LocalAuthRepository implements AuthRepository {
   Future<void> signOut() async {
     _id = null;
     _controller.add(null);
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    _profile = null;
+    await signOut();
   }
 
   @override

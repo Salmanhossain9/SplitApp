@@ -29,18 +29,18 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Share links: https://splitup.app/s/{token} (verified app link) and the custom scheme. -->
+            <!-- Share links: https://splitbit.app/s/{token} (verified app link) and the custom scheme. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="splitup.app" android:pathPrefix="/s/"/>
+                <data android:scheme="https" android:host="splitbit.app" android:pathPrefix="/s/"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="splitup" android:host="splitup.app" android:pathPrefix="/s/"/>
+                <data android:scheme="splitbit" android:host="splitbit.app" android:pathPrefix="/s/"/>
             </intent-filter>
             <!-- Google sign-in sends the browser back here: splitbit://login-callback -->
             <intent-filter>

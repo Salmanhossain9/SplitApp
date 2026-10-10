@@ -217,3 +217,26 @@ Source of truth is the SplitUp build spec (Flutter + Supabase). Anything the spe
   the 0, sent as +8801XXXXXXXXX. Phone codes need an SMS provider in Supabase; without one the app says
   "phone codes are not available yet" and email keeps working. Setup steps: docs/LOGIN_SETUP.md.
 - The Apple and Google marks are drawn in code; Google's four brand colours live in tokens.dart.
+
+## Play Store readiness: app id, account deletion, privacy, no phone login
+- The Android application id, namespace, Kotlin package and iOS bundle id are now `app.splitbit.splitbit`, and
+  the Dart package is `splitbit`. Share links use `https://splitbit.app/s/...` and the `splitbit://` scheme.
+  Phones with the old id must uninstall first. Kept on purpose: the keystore file name and alias (`splitup-...`),
+  and the `'splitup:billId:personId'` string that makes participant ids (changing it would change ids of saved
+  bills).
+- Phone login is removed (screen, repository methods, `bdMobileE164`, docs, tests). Email code and Google remain.
+  The "phone codes are not available" message text is kept in `friendlyAuthMessage` and costs nothing.
+- Account deletion: `delete_account_data(uuid)` (service role only) deletes the bills the person hosted, their
+  groups, friends and notifications and the profile; on other people's bills the person's name stays as a
+  plain guest row (`user_id` goes null). Deleting a bill directly passes the draft-only triggers because the
+  children are removed by the cascade after the parent is gone, so no bypass switch is needed. The
+  `delete-account` edge function takes the id from the verified token (never the body), requires
+  `{confirm: "delete"}`, calls the function, then deletes the login with the admin API. Both steps can be
+  repeated, so a half failure is fixed by trying again.
+- In the app: Settings, "delete my account", a sheet that requires typing `delete`. It also unregisters push and
+  clears the local draft. The web page `delete-account.html` does the same through an email code (it cannot
+  create accounts: `create_user: false`).
+- `privacy.html`, `terms.html`, `delete-account.html` live in `web/share` beside the share page; the contact
+  email comes from `config.js`. Settings and the login footer open them from `SHARE_BASE_URL`.
+- Data safety answers, the other Play forms, the listing text and the closed test steps are in
+  docs/PLAY_STORE.md. The form itself has to be submitted by the account owner in Play Console.

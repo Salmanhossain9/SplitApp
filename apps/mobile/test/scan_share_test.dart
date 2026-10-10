@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/features/scan/camera_gateway.dart';
-import 'package:splitup/features/scan/receipt_scanner.dart';
-import 'package:splitup/features/scan/scan_models.dart';
-import 'package:splitup/features/share/share_bills_sheet.dart';
-import 'package:splitup/features/share/share_service.dart';
-import 'package:splitup/features/share/shared_bill.dart';
-import 'package:splitup/features/share/share_view_screen.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/ui.dart';
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/features/scan/camera_gateway.dart';
+import 'package:splitbit/features/scan/receipt_scanner.dart';
+import 'package:splitbit/features/scan/scan_models.dart';
+import 'package:splitbit/features/share/share_bills_sheet.dart';
+import 'package:splitbit/features/share/share_service.dart';
+import 'package:splitbit/features/share/shared_bill.dart';
+import 'package:splitbit/features/share/share_view_screen.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/ui.dart';
 
 class NoCamera implements CameraGateway {
   @override
@@ -347,8 +347,8 @@ void main() {
     });
 
     test('share message and whatsapp links', () {
-      final d = DraftBill.fresh().copyWith(place: ' Chillox ', shareUrl: 'https://splitup.app/s/abc');
-      expect(shareMessage(d), 'Chillox is split. See your share: https://splitup.app/s/abc');
+      final d = DraftBill.fresh().copyWith(place: ' Chillox ', shareUrl: 'https://splitbit.app/s/abc');
+      expect(shareMessage(d), 'Chillox is split. See your share: https://splitbit.app/s/abc');
       expect(whatsappAppUri('a b&c').toString(), 'whatsapp://send?text=a%20b%26c');
       expect(whatsappWebUri('hi').host, 'wa.me');
     });

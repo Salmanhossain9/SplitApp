@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>delete account . splitbit</title>
+  <link rel="icon" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="legal.css">
+</head>
+<body>
+<main>
+  <a class="logo" href="./"><img class="mark" src="logo.png" alt="">splitbit</a>
+  <h1>delete your account</h1>
+  <p class="sub">For the Splitbit app (app.splitbit.splitbit)</p>
+  <p>You can delete your account here without opening the app. The easiest way inside the app is <b>Settings, delete my account</b>.</p>
+
+  <div class="card">
+    <h2 style="margin:0">what gets deleted</h2>
+    <ul>
+      <li>Your profile: name, email, avatar colour, bKash number and notification token.</li>
+      <li>Your groups, your friends list and your notifications.</li>
+      <li>Every bill you made, with its items, shares and payments. Friends who had its share link will no longer see it.</li>
+      <li>Your login.</li>
+    </ul>
+    <p>On bills other people made, your name stays as plain text so their totals still add up. Encrypted backups of our database host can take up to about 30 days to disappear. This cannot be undone.</p>
+  </div>
+
+  <div class="card" id="step-email">
+    <h2 style="margin:0">1. confirm it is you</h2>
+    <p>Enter the email you log in with. If you use Google, use your Google email. We send a 6 digit code.</p>
+    <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+    <button id="send">send me a code</button>
+  </div>
+
+  <div class="card hidden" id="step-code">
+    <h2 style="margin:0">2. enter the code</h2>
+    <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digit code">
+    <button id="verify">continue</button>
+  </div>
+
+  <div class="card hidden" id="step-delete">
+    <h2 style="margin:0">3. delete</h2>
+    <p>Type <b>delete</b> to confirm.</p>
+    <input id="typed" placeholder="delete" autocomplete="off" autocapitalize="none">
+    <button id="go" class="danger" disabled>delete my account forever</button>
+  </div>
+
+  <p class="warn hidden" id="error"></p>
+  <p class="ok hidden" id="done"><b>Your account has been deleted.</b> You can close this page.</p>
+
+  <p>Prefer email? Write to <span class="contact">(contact email not set yet)</span> from the address you signed up with.</p>
+  <p class="foot"><a href="privacy.html">privacy policy</a> . <a href="terms.html">terms</a> . <a href="delete-account.html">delete your account</a></p>
+</main>
+<script src="config.js"></script>
+<script src="legal.js"></script>
+<script>
+  // Talks to Supabase directly: a login code, then the delete-account function. No library needed.
+  const base = (window.SPLITUP_SHARE_API || '').replace(/\/functions\/v1\/.*$/, '');
+  const key = window.SPLITBIT_PUBLISHABLE_KEY || '';
+  const $ = (id) => document.getElementById(id);
+  let token = null;
+
+  const show = (id) => $(id).classList.remove('hidden');
+  const hide = (id) => $(id).classList.add('hidden');
+  const problem = (text) => { $('error').textContent = text; show('error'); };
+  const call = (path, body, bearer) => fetch(base + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: key, Authorization: 'Bearer ' + (bearer || key) },
+    body: JSON.stringify(body),
+  });
+  const busy = (btn, on) => { btn.disabled = on; };
+
+  if (!base || base.includes('YOUR-PROJECT') || !key) {
+    problem('This page is not set up yet (config.js needs the Supabase URL and publishable key). Please write to us to delete your account.');
+    $('send').disabled = true;
+  }
+
+  $('send').onclick = async () => {
+    hide('error');
+    const email = $('email').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return problem('Enter a valid email address.');
+    busy($('send'), true);
+    try {
+      // create_user false: this page can only log in an existing account, never make one.
+      const res = await call('/auth/v1/otp', { email, create_user: false });
+      if (!res.ok) throw new Error('send');
+      hide('step-email'); show('step-code');
+    } catch (e) {
+      problem('We could not send a code. Check the email address, or try again in a minute.');
+    } finally { busy($('send'), false); }
+  };
+
+  $('verify').onclick = async () => {
+    hide('error');
+    busy($('verify'), true);
+    try {
+      const res = await call('/auth/v1/verify', { type: 'email', email: $('email').value.trim(), token: $('code').value.trim() });
+      const data = await res.json();
+      if (!res.ok || !data.access_token) throw new Error('verify');
+      token = data.access_token;
+      hide('step-code'); show('step-delete');
+    } catch (e) {
+      problem('That code did not work. Check it or ask for a new one.');
+    } finally { busy($('verify'), false); }
+  };
+
+  $('typed').oninput = () => { $('go').disabled = $('typed').value.trim().toLowerCase() !== 'delete'; };
+
+  $('go').onclick = async () => {
+    hide('error');
+    busy($('go'), true);
+    try {
+      const res = await call('/functions/v1/delete-account', { confirm: 'delete' }, token);
+      if (!res.ok) throw new Error('delete');
+      token = null;
+      hide('step-delete'); show('done');
+    } catch (e) {
+      problem('We could not delete the account. Try again, or write to us.');
+      busy($('go'), false);
+    }
+  };
+</script>
+</body>
+</html>

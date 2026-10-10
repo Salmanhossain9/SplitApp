@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/ui.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/ui.dart';
 
 /// Phones are 360 to 412 dp wide and many people set a larger system font. A long price or title
 /// must shrink to fit, never overflow.

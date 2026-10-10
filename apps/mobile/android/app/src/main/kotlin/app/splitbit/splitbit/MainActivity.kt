@@ -1,4 +1,4 @@
-package app.splitup.splitup
+package app.splitbit.splitbit
 
 import io.flutter.embedding.android.FlutterActivity
 

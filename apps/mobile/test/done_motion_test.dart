@@ -4,16 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splitup/core/clock.dart';
-import 'package:splitup/core/person.dart';
-import 'package:splitup/features/bill/bill_repository.dart';
-import 'package:splitup/features/bill/bills_provider.dart';
-import 'package:splitup/features/bill/draft_bill.dart';
-import 'package:splitup/features/bill/draft_bill_notifier.dart';
-import 'package:splitup/router.dart';
-import 'package:splitup/theme/tokens.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/ui/ui.dart';
+import 'package:splitbit/core/clock.dart';
+import 'package:splitbit/core/person.dart';
+import 'package:splitbit/features/bill/bill_repository.dart';
+import 'package:splitbit/features/bill/bills_provider.dart';
+import 'package:splitbit/features/bill/draft_bill.dart';
+import 'package:splitbit/features/bill/draft_bill_notifier.dart';
+import 'package:splitbit/router.dart';
+import 'package:splitbit/theme/tokens.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/ui/ui.dart';
 
 final now = DateTime(2026, 9, 14, 20, 30);
 

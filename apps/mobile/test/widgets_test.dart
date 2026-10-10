@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:splitup/core/person.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/theme/tokens.dart';
-import 'package:splitup/ui/ui.dart';
+import 'package:splitbit/core/person.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/theme/tokens.dart';
+import 'package:splitbit/ui/ui.dart';
 
 Widget host(Widget child) => MaterialApp(
       theme: buildAppTheme(),

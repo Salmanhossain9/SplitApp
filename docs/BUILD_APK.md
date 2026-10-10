@@ -1,5 +1,8 @@
 # Build an APK to share with friends (Android)
 
+> The app id is now `app.splitbit.splitbit`. Anyone with an older build must uninstall it first. For Google Play
+> see `PLAY_STORE.md`.
+
 Friends install it by tapping the file. There is no Play Store step. iPhones cannot install it.
 
 ## 1. Make your signing key (once)

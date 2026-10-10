@@ -9,7 +9,7 @@ Receipts are read **on the phone** with Google ML Kit, so there is no AI key to 
 
 ## 1. Create the project
 1. Go to https://supabase.com, sign in, click **New project**.
-2. Name it `splitup`. Choose a **database password** and save it somewhere (you rarely need it).
+2. Name it `splitbit`. Choose a **database password** and save it somewhere (you rarely need it).
 3. Region: the closest to you (for Bangladesh, **Singapore** or **Mumbai**). Plan: **Free**.
 4. Wait about two minutes until the project is ready.
 
@@ -70,6 +70,7 @@ password, enter the one from step 1.) Then:
 npx supabase@latest functions deploy finalize-bill --use-api
 npx supabase@latest functions deploy share-view --use-api --no-verify-jwt
 npx supabase@latest functions deploy send-reminders --use-api
+npx supabase@latest functions deploy delete-account --use-api
 ```
 `--use-api` means Docker is not needed. `--no-verify-jwt` is only for `share-view`, because
 friends open it without an account.

@@ -25,7 +25,7 @@ declare
   j_pizza constant uuid := 'c2000000-0000-0000-0000-000000000001';
 begin
   insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  values (demo, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'demo@splitup.app', now(),
+  values (demo, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'demo@splitbit.app', now(),
           '{"provider":"email","providers":["email"]}', '{}', now(), now())
   on conflict (id) do nothing;
   insert into profiles (id, name, avatar_color, bkash_number) values (demo, 'Demo', 'lavender', '01700000000')

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:splitup/features/gallery/gallery_screen.dart';
-import 'package:splitup/theme/app_theme.dart';
-import 'package:splitup/theme/tokens.dart';
+import 'package:splitbit/features/gallery/gallery_screen.dart';
+import 'package:splitbit/theme/app_theme.dart';
+import 'package:splitbit/theme/tokens.dart';
 
 /// One golden per gallery section, rendered in a 390 wide frame like the design.
 void main() {

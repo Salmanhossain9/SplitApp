@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/tokens.dart';
 import '../../ui/ui.dart';
 import '../../core/env.dart';
+import '../../core/legal.dart';
 import '../auth/auth_providers.dart';
 import '../bill/draft_bill_notifier.dart';
 import '../auth/profile_screen.dart' show avatarColorNames;
 import '../notifications/push_service.dart';
+import 'delete_account_sheet.dart';
 
-/// Profile, bKash number and log out.
+/// Profile, bKash number, log out, privacy policy and account deletion.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -66,10 +69,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await auth.signOut();
   }
 
+  Future<void> _openPage(String url) async {
+    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('could not open the page. try again later.')));
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    await showAppBottomSheet<bool>(
+      context: context,
+      builder: (_) => DeleteAccountSheet(onDelete: () async {
+        final auth = ref.read(authRepositoryProvider);
+        final id = auth.userId;
+        // Needs the login, so it goes before the account is deleted.
+        if (id != null) {
+          try {
+            await ref.read(pushServiceProvider).unregister(id);
+          } catch (_) {}
+        }
+        await auth.deleteAccount();
+        // Nothing of this person stays on the phone. The session ends, so the router goes to welcome.
+        await ref.read(draftBillProvider.notifier).clear();
+      }),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final account = ref.watch(authRepositoryProvider);
-    final email = account.email ?? account.phone;
+    final email = account.email;
     final name = _name.text.trim();
     return ScreenFrame(
       reserveBottom: true,
@@ -154,6 +183,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onPressed: _save,
         ),
         WideButton(label: 'log out', variant: WideButtonVariant.another, onPressed: _logOut),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('your data', style: AppType.heading20),
+            const SizedBox(height: AppSpacing.s12),
+            Wrap(
+              spacing: AppSpacing.s8,
+              runSpacing: AppSpacing.s8,
+              children: [
+                PillButton(label: 'privacy policy', onTap: () => _openPage(privacyPolicyUrl), background: AppColors.white),
+                PillButton(label: 'terms', onTap: () => _openPage(termsUrl), background: AppColors.white),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.s16),
+            DangerButton(label: 'delete my account', onPressed: _deleteAccount),
+          ],
+        ),
         Center(
           child: Text(
             Env.isConfigured

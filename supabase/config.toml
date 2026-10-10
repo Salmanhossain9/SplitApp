@@ -1,5 +1,5 @@
 # Supabase local config. `supabase start` brings up Postgres, Auth, Storage, Inbucket, Edge Functions.
-project_id = "splitup"
+project_id = "splitbit"
 
 [api]
 enabled = true
@@ -12,8 +12,8 @@ major_version = 15
 
 [auth]
 enabled = true
-site_url = "splitup://login-callback"
-additional_redirect_urls = ["splitup://login-callback", "splitbit://login-callback"]
+site_url = "splitbit://login-callback"
+additional_redirect_urls = ["splitbit://login-callback"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true
@@ -52,4 +52,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.send-reminders]
+verify_jwt = true
+
+[functions.delete-account]
 verify_jwt = true
